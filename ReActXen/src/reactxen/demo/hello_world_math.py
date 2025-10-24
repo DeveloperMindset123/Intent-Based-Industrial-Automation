@@ -21,7 +21,7 @@ def main(mode, model_id):
         "num_reflect_iteration": 3,  # Example number of iterations for reflection
         "early_stop": False,  # Do not stop early
         "debug": False,
-        "reactstyle": "thought_and_act_together"
+        "reactstyle": "thought_and_act_together",
     }
 
     # Call create_reactxen_agent to initialize the agent
@@ -37,13 +37,13 @@ def main(mode, model_id):
     ans = agent.run()
 
     # Print the result
-    print (ans)
+    print(ans)
     with open("sample_review_math_problem.json", "w") as file:
         json.dump(ans, file, indent=4)
 
     # print(ans)
     metric = agent.export_benchmark_metric()
-    print (metric)
+    print(metric)
     with open("sample_metric_math_problem.json", "w") as file:
         json.dump(metric, file, indent=4)
 
@@ -51,6 +51,7 @@ def main(mode, model_id):
     traj = agent.export_trajectory()
     with open("sample_traj_math_problem.json", "w") as file:
         json.dump(traj, file, indent=4)
+
 
 if __name__ == "__main__":
     # Parse command-line arguments
