@@ -1284,7 +1284,39 @@ class ReactAgent:
                         warnings.simplefilter("ignore")
                         signal.alarm(300)  # Set the alarm to 300 seconds
                         try:
-                            exec(argument[0], globals(), self.local_vars)
+                            # Create execution environment with tools available
+                            exec_globals = globals().copy()
+                            exec_locals = self.local_vars.copy()
+                            
+                            # Inject tools into the execution environment
+                            print(f"DEBUG: Injecting {len(self.cbm_tools)} tools into execution environment")
+                            for tool in self.cbm_tools:
+                                print(f"DEBUG: Injecting tool: {tool.name}")
+                                # Create wrapper functions that handle tool_input parameter
+                                # Use lambda with default parameter to capture tool by value
+                                def create_tool_wrapper(tool_obj=tool):
+                                    def wrapper(tool_input=None, **kwargs):
+                                        print(f"DEBUG: Calling tool {tool_obj.name} with tool_input={tool_input}, kwargs={kwargs}")
+                                        if tool_input is not None:
+                                            # If tool_input is provided, extract parameters from it
+                                            if isinstance(tool_input, dict):
+                                                return tool_obj._run(**tool_input)
+                                            else:
+                                                return tool_obj._run(tool_input)
+                                        else:
+                                            # If no tool_input, use kwargs directly
+                                            return tool_obj._run(**kwargs)
+                                    return wrapper
+                                
+                                # Make tools available as functions in the execution environment
+                                exec_locals[tool.name] = create_tool_wrapper()
+                                # Also make them available with underscores for convenience
+                                exec_locals[tool.name.replace('_', '')] = create_tool_wrapper()
+                            
+                            print(f"DEBUG: Available functions in exec_locals: {list(exec_locals.keys())}")
+                            print(f"DEBUG: About to execute: {argument[0]}")
+                            
+                            exec(argument[0], exec_globals, exec_locals)
                             # Reset the alarm
                             # signal.alarm(0)
                         except Exception as e:
@@ -1941,7 +1973,8 @@ class ReactReflectAgent(ReactAgent):
         self.metric = self.export_benchmark_metric()
         self.trajectory = self.export_trajectory()
 
-        return review
+        # Return the actual answer instead of the review
+        return self.answer
 
     def reflect(self, strategy: ReflexionStrategy) -> None:
 
