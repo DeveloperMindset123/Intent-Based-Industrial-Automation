@@ -1,0 +1,242 @@
+{
+  "amazon/chronos-t5-small": {
+    "model_id": "amazon/chronos-t5-small",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 999102,
+      "likes": 133,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "amazon/chronos-t5-tiny": {
+    "model_id": "amazon/chronos-t5-tiny",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 872331,
+      "likes": 113,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "Datadog/Toto-Open-Base-1.0": {
+    "model_id": "Datadog/Toto-Open-Base-1.0",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 721441,
+      "likes": 123,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "amazon/chronos-t5-base": {
+    "model_id": "amazon/chronos-t5-base",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 412934,
+      "likes": 37,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "autogluon/chronos-t5-tiny": {
+    "model_id": "autogluon/chronos-t5-tiny",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 205426,
+      "likes": 12,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "amazon/chronos-t5-large": {
+    "model_id": "amazon/chronos-t5-large",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 122009,
+      "likes": 161,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "Salesforce/moirai-1.1-R-large": {
+    "model_id": "Salesforce/moirai-1.1-R-large",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 63342,
+      "likes": 29,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "Salesforce/moirai-1.1-R-small": {
+    "model_id": "Salesforce/moirai-1.1-R-small",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 62268,
+      "likes": 7,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "AutonLab/MOMENT-1-large": {
+    "model_id": "AutonLab/MOMENT-1-large",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 52768,
+      "likes": 82,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "amazon/chronos-t5-mini": {
+    "model_id": "amazon/chronos-t5-mini",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 45938,
+      "likes": 17,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "Salesforce/moirai-1.1-R-base": {
+    "model_id": "Salesforce/moirai-1.1-R-base",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 45691,
+      "likes": 7,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "autogluon/chronos-t5-mini": {
+    "model_id": "autogluon/chronos-t5-mini",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 35973,
+      "likes": 5,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "autogluon/chronos-t5-base": {
+    "model_id": "autogluon/chronos-t5-base",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 19226,
+      "likes": 5,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "autogluon/chronos-t5-small": {
+    "model_id": "autogluon/chronos-t5-small",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 15565,
+      "likes": 5,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "autogluon/chronos-t5-large": {
+    "model_id": "autogluon/chronos-t5-large",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 14302,
+      "likes": 6,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "AutonLab/MOMENT-1-small": {
+    "model_id": "AutonLab/MOMENT-1-small",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 11174,
+      "likes": 5,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "Salesforce/moirai-1.0-R-small": {
+    "model_id": "Salesforce/moirai-1.0-R-small",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 9872,
+      "likes": 29,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "Salesforce/moirai-1.0-R-large": {
+    "model_id": "Salesforce/moirai-1.0-R-large",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 8808,
+      "likes": 83,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "AutonLab/MOMENT-1-base": {
+    "model_id": "AutonLab/MOMENT-1-base",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 4028,
+      "likes": 5,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  },
+  "ibm-granite/granite-timeseries-patchtst": {
+    "model_id": "ibm-granite/granite-timeseries-patchtst",
+    "task": "time-series-forecasting",
+    "model_type": "transformer",
+    "performance_metrics": {
+      "downloads": 2869,
+      "likes": 17,
+      "recency_score": 1.0
+    },
+    "last_updated": "2025-10-29T22:50:44.876973",
+    "status": "active"
+  }
+}
