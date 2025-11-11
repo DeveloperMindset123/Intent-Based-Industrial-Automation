@@ -1,3 +1,5 @@
+from langchain_core.prompts import PromptTemplate
+
 """relevant configurations needed"""
 
 root_prompt = PromptTemplate(

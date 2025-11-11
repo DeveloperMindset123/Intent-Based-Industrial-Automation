@@ -8,7 +8,10 @@ from langchain_core.prompts import PromptTemplate
 from huggingface_hub import HfApi
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 import logging
+
+load_dotenv(override=False)
 
 
 # ==========================================================================================
@@ -1403,6 +1406,7 @@ class SearchToolWrapper(BaseTool):
 
 # TODO : maybe brave search tool and duckduckgo search tool being included seperately is not needed
 all_tools.append(SearchToolWrapper())
+print(all_tools)
 # detailed info on the tools available
 print(f"\n📊 Total tools available: {len(all_tools)}")
 print(f"Tool names: {[tool.name for tool in all_tools]}\n")
