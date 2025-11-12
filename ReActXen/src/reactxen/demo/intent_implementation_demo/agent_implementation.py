@@ -1,4 +1,5 @@
 from langchain_core.prompts import PromptTemplate
+from tools_logic import all_tools
 
 """relevant configurations needed"""
 
@@ -26,36 +27,6 @@ Engine ID | Predicted RUL | Maintenance Category | Priority | Safety Requirement
 Question: {question}""",
 )
 
-# This is the optimized version with additional information on all the tools with updated logic
-# optimized_root_prompt = PromptTemplate(
-#     input_variables=["question"],
-#     template="""You are an AI Root Agent specialized in Intent-Based Industrial Automation for predictive maintenance and RUL (Remaining Useful Life) prediction.
-
-# Your capabilities include:
-# 1. Data Loading: Load training, test, and ground truth data from CMAPSS dataset
-# 2. Model Management: Initialize and select WatsonX models dynamically
-# 3. Online Research: Search for OSHA safety protocols, maintenance costs, and best practices
-# 4. RUL Prediction: Predict remaining useful life for aircraft engines
-# 5. Safety Analysis: Provide safety recommendations based on maintenance requirements
-# 6. Cost Estimation: Estimate maintenance costs and perform cost-benefit analysis
-
-# PROCESS:
-# 1. Use load_train_data(), load_test_data(), or load_ground_truth() to load datasets
-# 2. Use initialize_watsonx_api() to set up WatsonX, then get_chat_models_list() to see available models
-# 3. Use brave_search() or duckduckgo_search() to find safety protocols, costs, or best practices
-# 4. Analyze data and make predictions based on the user's question
-# 5. Provide comprehensive results with safety recommendations and cost estimates
-
-# MAINTENANCE CLASSIFICATION:
-# - ROUTINE_SURVEILLANCE (RUL > 100): LOW priority, regular operational checks
-# - PROACTIVE_INSPECTION (50 < RUL ≤ 100): MEDIUM priority, scheduled preventive checks
-# - CORRECTIVE_ACTION (20 < RUL ≤ 49): HIGH priority, timely repair to prevent failure
-# - IMMEDIATE_GROUNDING (RUL ≤ 20): CRITICAL priority, emergency shutdown/replacement
-
-# Always provide clear, actionable insights with proper safety considerations and cost analysis.
-
-# Question: {question}""",
-# )
 
 improved_root_prompt = PromptTemplate(
     input_variables=["question", "tool_desc", "tool_names", "scratchpad", "examples"],
@@ -188,6 +159,7 @@ if str(reactxen_src_path) not in sys.path:
 from reactxen.prebuilt.create_reactxen_agent import create_reactxen_agent
 from reactxen.utils.tool_description import get_tool_description, get_tool_names
 
+# We are not using this
 tool_desc = get_tool_description(all_tools, detailed_desc=True)
 tool_names = get_tool_names(all_tools)
 

@@ -7,6 +7,11 @@ from ibm_watsonx_ai.foundation_models import ModelInference
 from langchain_core.prompts import PromptTemplate
 from huggingface_hub import HfApi
 from datetime import datetime
+from load_data import (
+    get_reference_test_data,
+    get_reference_train_data,
+    get_ground_truth,
+)
 import os
 from dotenv import load_dotenv
 import logging
@@ -110,7 +115,7 @@ The RUL should be approximately {rul_value} cycles."""
                     # Use WatsonX model for prediction
                     response = model_inference.generate(
                         prompt=test_prompt, max_new_tokens=50
-                    )
+                    )  # type: ignore
                     test_results.append(
                         {
                             "engine_id": row.get("unit", idx),
@@ -211,20 +216,22 @@ class watsonx_api:
 
     def create_api_credentials(self):
         """create and return credentials object"""
-        return Credentials(url=self.project_url, api_key=self.api_key)
+        return Credentials(url=self.project_url, api_key=self.api_key)  # type: ignore
 
     def create_api_client(self):
         """create and return APIClient object"""
-        return APIClient(credentials=self.create_api_credentials())
+        return APIClient(credentials=self.create_api_credentials())  # type: ignore
 
     def get_chat_models_list(self):
         """Retrieves list of ChatModels's ids within the foundation_models catalog.
         Returns a list of available model IDs that the agent can choose from.
+
+        NOTE : These aren't being picked up correctly
         """
         try:
             return [
                 models_enum.value
-                for models_enum in self.create_api_client().foundation_models.ChatModels
+                for models_enum in self.create_api_client().foundation_models.ChatModels  # type: ignore
             ]
 
         except Exception as e:
@@ -448,7 +455,7 @@ class CostEstimationTool(BaseTool):
     Use brave_search or duckduckgo_search to get current labor rates and material costs
     before calling this tool for accurate estimates.
     """
-    args_schema: Type[BaseModel] = CostEstimationInput
+    args_schema: Type[BaseModel] = CostEstimationInput  # type: ignore
 
     def _run(
         self,
@@ -1340,15 +1347,17 @@ all_tools.extend(create_huggingface_tools())
 all_tools.extend(create_cost_benefit_analysis_tools())
 
 # add RUL prediction tools (if they exists)
-try:
-    if "rul_tools" in globals():
-        all_tools.extend(rul_tools)
-        print(f"✅ Added {len(rul_tools)} RUL prediction tools.")
-except NameError:
-    print("⚠️ rul_tools not found. RUL prediction tools will not be available.")
+# replaced with huggingface, cost and watsonx specific tools
+# try:
+#     if "rul_tools" in globals():
+#         all_tools.extend(rul_tools)
+#         print(f"✅ Added {len(rul_tools)} RUL prediction tools.")
+# except NameError:
+#     print("⚠️ rul_tools not found. RUL prediction tools will not be available.")
 
 # Update BraveSearch tool description to mention fallback
-brave_search_tool.description = """Search the web using Brave Search API.
+if brave_search_tool:
+    brave_search_tool.description = """Search the web using Brave Search API.
     
     If this tool fails with HTTP 422 or any error, immediately try duckduckgo_search instead.
     
@@ -1356,6 +1365,14 @@ brave_search_tool.description = """Search the web using Brave Search API.
     
     Example: {{"query": "OSHA safety protocols for aircraft engine maintenance"}}
     """
+# brave_search_tool.description = """Search the web using Brave Search API.
+
+#     If this tool fails with HTTP 422 or any error, immediately try duckduckgo_search instead.
+
+#     Input: JSON format with "query" parameter: {{"query": "your search query"}}
+
+#     Example: {{"query": "OSHA safety protocols for aircraft engine maintenance"}}
+#     """
 # add brave and duckduckgo search tools
 if brave_search_tool and duckduckgo_search_tool:
     all_tools.append(brave_search_tool)
