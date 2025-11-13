@@ -1,47 +1,9 @@
-import pandas as pd
-import platform
-from pathlib import Path
-from typing import List
-
-# library and logic for loading the data from huggingface directly
-# NOTE : This is regarding PDMBench
-from datasets import load_dataset
-
-# list for links for the dataset links that needs to be plled
-
-data_url_link: List[str] = [
-    "submission096/XJTU",
-    "submission096/MAFAULDA",
-    "submission096/Padeborn",
-    "submission096/IMS",
-    "submission096/UoC",
-    "submission096/RotorBrokenBar",
-    "submission096/MFPT",
-    "submission096/HUST",
-    "submission096/FEMTO",
-    "submission096/Mendeley",
-    "submission096/ElectricMotorVibrations",
-    "submission096/CWRU",
-    "submission096/CWRU",
-    "submission096/Azure",
-    "submission096/PlanetaryPdM",
-]
-
-
-def load_huggingface_data(data_list: List[str]):
-    for data_url in data_list:
-        curr_data = load_dataset(data_url)
-        print(f"Loaded current dataset:\n{curr_data}")
-
-
-train_data = None
-test_data = None
-ground_truth = None
-trained_models = {}
-scalers = {}
-
-
 # Code logic for loading and processing the ground truth data:
+import pandas as pd
+import os
+from pathlib import Path
+
+
 def get_ground_truth():
     """
     Load the ground truth RUL values for test data.
@@ -53,16 +15,9 @@ def get_ground_truth():
     # data_path = Path("../../../../data/CMAPSSData/RUL_FD001.txt")
 
     # test with absolute path
-
-    # return absolute path based on corresponding architecture
-    decide_path: str = (
-        "/home/dasa60196/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/RUL_FD001.txt"
-        if str(platform.machine() == "aarch64")
-        else "/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/RUL_FD001.txt"
+    data_path = Path(
+        "/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/RUL_FD001.txt"
     )
-
-    print(f"Decided path : {decide_path}")
-    data_path = Path(decide_path)
     if not data_path.exists():
         raise FileNotFoundError(f"Ground truth data not found at {data_path}")
 
@@ -73,6 +28,9 @@ def get_ground_truth():
     print(f"   RUL range: {ground_truth['RUL'].min()} to {ground_truth['RUL'].max()}")
 
     return ground_truth
+
+
+# get_ground_truth()
 
 
 # Code logic for importing and processing the test data
@@ -87,13 +45,9 @@ def get_reference_test_data():
     # data_path = Path("../../../../data/CMAPSSData/test_FD001.txt")
 
     # test with absolute path
-    decide_path: str = (
-        "/home/dasa60196/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/test_FD001.txt"
-        if str(platform.machine() == "aarch64")
-        else "/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/test_FD001.txt"
+    data_path = Path(
+        "/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/test_FD001.txt"
     )
-
-    data_path = Path(decide_path)
 
     if not data_path.exists():
         raise FileNotFoundError(f"Test data not found at {data_path}")
@@ -162,12 +116,9 @@ def get_reference_train_data():
     # data_path = Path("../../../../data/CMAPSSData/train_FD001.txt")
 
     # test with absolute path
-    decide_path: str = (
-        "/home/dasa60196/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/train_FD001.txt"
-        if str(platform.machine() == "aarch64")
-        else "/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/train_FD001.txt"
+    data_path = Path(
+        "/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/train_FD001.txt"
     )
-    data_path = Path(decide_path)
 
     # NOTE : wrap around Path around the string to ensure that the file exists
     if not data_path.exists():
@@ -272,13 +223,4 @@ def get_reference_train_data():
     return train_data
 
 
-# get_reference_train_data()
-
-
-if __name__ == "__main__":
-    """uncomment the functions as needed"""
-    # get_ground_truth()
-    # get_reference_test_data()
-    # get_reference_train_data()
-
-    print(load_huggingface_data(data_list=data_url_link))
+get_reference_train_data()
