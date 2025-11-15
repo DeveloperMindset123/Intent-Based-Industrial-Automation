@@ -274,11 +274,11 @@ def get_reference_train_data():
 
 # get_reference_train_data()
 
-
 if __name__ == "__main__":
     """uncomment the functions as needed"""
     # get_ground_truth()
     # get_reference_test_data()
     # get_reference_train_data()
-
-    print(load_huggingface_data(data_list=data_url_link))
+    ds = load_dataset("submission096/PlanetaryPdM").to_json()
+    # print(load_huggingface_data(data_list=data_url_link))
+    print(ds)
