@@ -103,6 +103,14 @@ def extract_action_and_input(step: str, stop: Union[str, list]) -> str:
     if action_match:
         action = action_match.group(1).strip()
         action_input = action_match.group(2)
+        # Stop at "Observation" keyword if present
+        if "\nObservation" in action_input:
+            action_input = action_input.split("\nObservation")[0]
+        elif " Observation" in action_input:
+            action_input = action_input.split(" Observation")[0]
+        # Also remove any trailing "Observation" text
+        action_input = re.sub(r'\s+Observation\s*$', '', action_input, flags=re.IGNORECASE)
+        action_input = re.sub(r'\s+Observation\s+Observation.*$', '', action_input, flags=re.IGNORECASE)
         if ActionStyle.SINGLE_LINE_TOOL_CALL:
             action_input = action_input.strip("\n").replace("\n", " ")
         tool_input = action_input.strip().strip('"')
@@ -118,6 +126,14 @@ def extract_action_and_input(step: str, stop: Union[str, list]) -> str:
         if action_match:
             action = action_match.group(1).strip()
             action_input = action_match.group(2)
+            # Stop at "Observation" keyword if present
+            if "\nObservation" in action_input:
+                action_input = action_input.split("\nObservation")[0]
+            elif " Observation" in action_input:
+                action_input = action_input.split(" Observation")[0]
+            # Also remove any trailing "Observation" text
+            action_input = re.sub(r'\s+Observation\s*$', '', action_input, flags=re.IGNORECASE)
+            action_input = re.sub(r'\s+Observation\s+Observation.*$', '', action_input, flags=re.IGNORECASE)
             if ActionStyle.SINGLE_LINE_TOOL_CALL:
                 action_input = action_input.strip("\n").replace("\n", " ")
             tool_input = action_input.strip().strip('"')
