@@ -14,6 +14,8 @@ This repository implements an agentic framework for predictive maintenance and i
 
 The framework has been published at **EMNLP 2025 Industry Track** for "ReAct Meets Industrial IoT: Language Agents for Data Access".
 
+**Note**: ReActXen is currently not available as a pip package, so it is included as a submodule within this repository. The implementation code is located in `ReActXen/src/reactxen/demo/intent_implementation_demo/`.
+
 ## Project Overview
 
 This implementation demonstrates ReActXen's capabilities through:
@@ -163,48 +165,100 @@ The following credentials are required for the agent to function:
    - `WATSONX_PROJECT_ID`: Your WatsonX project ID
 
 2. **Optional Credentials**
+   - `OPENAI_API_KEY`: For OpenAI API access (if using OpenAI models)
+   - `HF_APIKEY` or `HF_BEARER_TOKEN`: For accessing HuggingFace datasets and models
    - `BRAVE_API_KEY`: For enhanced web search capabilities (falls back to DuckDuckGo if not provided)
-   - `HF_BEARER_TOKEN`: For accessing private HuggingFace datasets
 
-### Setting Up Environment Variables
+### Setting Up Credentials
+
+The application supports two methods for providing credentials, with automatic fallback:
+
+1. **Primary Method**: Environment variables (via `.env` file or system environment)
+2. **Fallback Method**: `credentials.json` file (used if environment variables are not detected or fail)
 
 #### Method 1: Using `.env` File (Recommended)
 
-1. Copy the environment template:
+1. Navigate to the demo directory:
 
 ```bash
-# From project root
-cp ReActXen/env/.env_template .env
-
-# Or from demo directory
-cp ../../env/.env_template .env
+cd ReActXen/src/reactxen/demo/intent_implementation_demo
 ```
 
-2. Edit the `.env` file with your actual credentials:
+2. Copy the environment template:
+
+```bash
+# From demo directory
+cp ../../env/.env_template .env
+
+# Or from project root
+cp ReActXen/env/.env_template ReActXen/src/reactxen/demo/intent_implementation_demo/.env
+```
+
+3. Edit the `.env` file with your actual credentials:
 
 ```env
-# WatsonX configuration
+# WatsonX configuration (Required)
 WATSONX_APIKEY="your_actual_watsonx_api_key"
 WATSONX_URL="https://us-south.ml.cloud.ibm.com/"
 WATSONX_PROJECT_ID="your_actual_project_id"
 
-# Optional: Brave Search API (for enhanced web search)
-BRAVE_API_KEY="your_brave_api_key"
+# OpenAI configuration (Optional)
+OPENAI_API_KEY="your_openai_api_key"
 
-# Optional: HuggingFace token (for private datasets)
+# HuggingFace configuration (Optional)
+HF_APIKEY="your_huggingface_api_key"
 HF_BEARER_TOKEN="your_huggingface_token"
+
+# Brave Search API (Optional)
+BRAVE_API_KEY="your_brave_api_key"
 ```
 
-3. The application will automatically load these variables using `python-dotenv`.
+4. The application will automatically load these variables using `python-dotenv`.
 
-#### Method 2: Export Environment Variables
+#### Method 2: Using `credentials.json` (Fallback)
+
+If environment variables are not detected or fail to authenticate, the application will automatically fall back to `credentials.json`. This is useful when:
+
+- Environment variables are not properly loaded
+- Running in environments where `.env` files are not accessible
+- Need a local credential file for testing
+
+1. Navigate to the demo directory:
+
+```bash
+cd ReActXen/src/reactxen/demo/intent_implementation_demo
+```
+
+2. Copy the credentials template:
+
+```bash
+cp credentials.json.template credentials.json
+```
+
+3. Edit `credentials.json` with your actual credentials:
+
+```json
+{
+  "watsonx_apikey": "your_actual_watsonx_api_key",
+  "watsonx_url": "https://us-south.ml.cloud.ibm.com/",
+  "watsonx_project_id": "your_actual_project_id",
+  "openai_api_key": "your_openai_api_key",
+  "hf_api_key": "your_huggingface_api_key",
+  "brave_api_key": "your_brave_api_key"
+}
+```
+
+**Important**: The `credentials.json` file is **not tracked by version control** (it's in `.gitignore`). Never commit your actual credentials to the repository.
+
+#### Method 3: Export Environment Variables
 
 ```bash
 export WATSONX_APIKEY="your_actual_watsonx_api_key"
 export WATSONX_URL="https://us-south.ml.cloud.ibm.com/"
 export WATSONX_PROJECT_ID="your_actual_project_id"
+export OPENAI_API_KEY="your_openai_api_key"  # Optional
+export HF_APIKEY="your_huggingface_api_key"  # Optional
 export BRAVE_API_KEY="your_brave_api_key"  # Optional
-export HF_BEARER_TOKEN="your_huggingface_token"  # Optional
 ```
 
 ### Obtaining Credentials
@@ -260,9 +314,10 @@ The setup installs:
 
 The application uses `python-dotenv` to automatically load credentials from:
 
-1. `.env` file in the current directory
+1. `.env` file in the current directory (`ReActXen/src/reactxen/demo/intent_implementation_demo/`)
 2. `.env` file in the project root
 3. System environment variables (takes precedence)
+4. **Fallback**: `credentials.json` file in the demo directory (if environment variables fail or are not detected)
 
 ## Running the Agent
 
@@ -347,21 +402,24 @@ Final Answer Generation
 
 ```
 Intent-Based-Industrial-Automation/
-├── ReActXen/
+├── ReActXen/                          # ReActXen framework (not available as pip package)
 │   ├── src/reactxen/
-│   │   ├── agents/          # Agent implementations
+│   │   ├── agents/                    # Agent implementations
 │   │   ├── demo/
-│   │   │   └── intent_implementation_demo/
+│   │   │   └── intent_implementation_demo/  # Your implementation code
 │   │   │       ├── agent_implementation_hf.py
 │   │   │       ├── tools_logic.py
 │   │   │       ├── load_data.py
 │   │   │       ├── benchmark.py
-│   │   │       └── downloaded_datasets/
-│   │   └── utils/           # Utility functions
+│   │   │       ├── credentials.json.template  # Template for credentials.json
+│   │   │       ├── .env                      # Your local .env file (not tracked)
+│   │   │       ├── credentials.json         # Your local credentials (not tracked)
+│   │   │       └── downloaded_datasets/     # Local dataset storage
+│   │   └── utils/                     # Utility functions
 │   ├── env/
-│   │   └── .env_template    # Environment variable template
-│   └── pyproject.toml       # ReActXen package dependencies
-└── README.md                # This file
+│   │   └── .env_template             # Environment variable template
+│   └── pyproject.toml                # ReActXen package dependencies
+└── README.md                         # This file
 ```
 
 ## Troubleshooting
@@ -377,9 +435,15 @@ Intent-Based-Industrial-Automation/
 
 2. **Credential Errors**:
 
-   - Verify `.env` file exists and contains correct values
+   - Verify `.env` file exists in `ReActXen/src/reactxen/demo/intent_implementation_demo/` and contains correct values
    - Check that environment variables are exported correctly
    - Ensure WatsonX project ID is valid
+   - If environment variables fail, create `credentials.json` in the demo directory as a fallback:
+     ```bash
+     cd ReActXen/src/reactxen/demo/intent_implementation_demo
+     cp credentials.json.template credentials.json
+     # Then edit credentials.json with your actual values
+     ```
 
 3. **Dataset Download Failures**:
 
