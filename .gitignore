@@ -23,3 +23,5 @@ credentials.json
 ReActXen/src/reactxen/demo/intent_implementation_demo/downloaded_datasets/PlanetaryPdM/train/train.parquet
 ReActXen/src/reactxen/demo/intent_implementation_demo/downloaded_datasets/PlanetaryPdM/train/train.json
 ReActXen/src/reactxen/demo/intent_implementation_demo/downloaded_datasets/PlanetaryPdM/train/train.csv
+# Dev container configuration (not used)
+.devcontainer/
