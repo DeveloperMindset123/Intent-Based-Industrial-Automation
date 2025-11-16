@@ -346,6 +346,109 @@ python benchmark.py
 python run_agent_test.py
 ```
 
+## Agent Output Example
+
+The ReActXen agent follows a **ReAct** (Reasoning + Acting) pattern, where it iteratively reasons about the problem, takes actions using available tools, and observes the results. Here's what a typical agent execution looks like step-by-step:
+
+### Example: Predictive Maintenance Query
+
+**Input Question:**
+
+```
+Which equipment from the loaded dataset are likely to fail in the next 20 cycles?
+Provide equipment IDs with safety recommendations and cost estimates.
+```
+
+**Agent Execution Steps:**
+
+```
+Input Question: Which equipment from the loaded dataset are likely to fail in the next 20 cycles?
+Provide equipment IDs with safety recommendations and cost estimates.
+
+Thought 1: First, I need to list and load the available datasets.
+Action 1: list_datasets
+Action Input 1: {}
+Observation 1: Available datasets (2):   - Azure   - CWRU
+
+Thought 2: I will load the CWRU dataset as it is relevant for bearing failure analysis.
+Action 2: load_dataset
+Action Input 2: {"dataset_name": "CWRU"}
+Observation 2: ✅ Loaded CWRU: Train=17428, Test=4358
+
+Thought 3: Initialize WatsonX API.
+Action 3: initialize_watsonx_api
+Action Input 3: {}
+Observation 3: ✅ WatsonX API initialized. Project ID: 154f7c0c-42c9-40d2-80cd-dc2a6f31ea2f
+
+Thought 4: Get the list of available WatsonX chat models.
+Action 4: get_chat_models_list
+Action Input 4: {}
+Observation 4: Available models (15):   - ibm/granite-3-2-8b-instruct   - ibm/granite-3-3-8b-instruct   ...
+
+Thought 5: Set the model ID for WatsonX operations.
+Action 5: set_model_id
+Action Input 5: {"model_id": "ibm/granite-3-3-8b-instruct"}
+Observation 5: ✅ Model ID set to: ibm/granite-3-3-8b-instruct
+
+Thought 6: Train the RUL prediction model using WatsonX.
+Action 6: train_model
+Action Input 6: {}
+Observation 6: ✅ Model ready for RUL prediction using ibm/granite-3-3-8b-instruct
+
+Thought 7: Predict RUL for the loaded dataset.
+Action 7: predict_rul
+Action Input 7: {}
+Observation 7: ✅ RUL predictions generated for 100 samples. Range: 13.0-199.0 cycles.
+
+Thought 8: Identify engines with RUL <= 20 cycles.
+Action 8: get_engines_at_risk
+Action Input 8: {"threshold": 20}
+Observation 8: ✅ Found 4 engines at risk (RUL <= 20 cycles)
+
+Thought 9: Estimate maintenance costs for engines at risk.
+Action 9: estimate_maintenance_cost
+Action Input 9: {"maintenance_type": "CORRECTIVE_ACTION"}
+Observation 9: ✅ Estimated cost: $1,120.00 for CORRECTIVE_ACTION
+
+Thought 10: Provide safety recommendations based on RUL.
+Action 10: brave_search
+Action Input 10: OSHA safety protocols for equipment with RUL < 20 cycles
+Observation 10: [Search results with OSHA safety protocol information...]
+
+Final Answer: Based on the analysis of the CWRU dataset, 4 engines are at risk of failure
+within the next 20 cycles. The estimated maintenance cost for corrective action is $1,120.00.
+Safety recommendations include following OSHA guidelines for equipment with RUL < 20 cycles,
+including immediate grounding for RUL ≤ 10 cycles and corrective action for RUL ≤ 20 cycles.
+```
+
+### Understanding the Output Format
+
+Each step in the agent's execution follows this pattern:
+
+1. **Thought**: The agent's reasoning about what to do next
+2. **Action**: The tool/function to execute (e.g., `list_datasets`, `load_dataset`, `train_model`)
+3. **Action Input**: Parameters for the action in JSON format (empty `{}` if no parameters)
+4. **Observation**: The result returned from the tool execution
+
+### Key Features
+
+- **Iterative Reasoning**: The agent builds understanding step-by-step
+- **Tool Orchestration**: Seamlessly uses multiple tools (datasets, WatsonX, web search)
+- **Error Handling**: If one approach fails, the agent tries alternatives
+- **Reflection**: The agent can review its progress and adjust strategy
+- **Final Answer**: Synthesizes all observations into a comprehensive response
+
+### Output Files
+
+After execution, the agent generates several output files in the `outputs/` directory:
+
+- `agent_output_YYYYMMDD_HHMMSS.txt`: Complete step-by-step execution log
+- `agent_metrics_YYYYMMDD_HHMMSS.json`: Performance metrics and statistics
+- `agent_trajectory_*.json`: Structured trajectory data for analysis
+- `benchmark_results_*.txt` / `benchmark_results_*.md`: Benchmark comparison results
+
+These files provide detailed insights into the agent's decision-making process and can be used for debugging, optimization, and analysis.
+
 ## Replicating the Logic
 
 ### Understanding the Architecture
