@@ -12,6 +12,9 @@ from shared_utils import setup_paths, get_dataset_tools, get_tool_descriptions
 from reactxen.prebuilt.create_reactxen_agent import create_reactxen_agent
 from hierarchical_agents import create_sub_agent_tools
 from tools_logic import create_watsonx_tools
+from dynamic_agent_system import create_dynamic_agent_tools
+from ground_truth_verification import create_ground_truth_tools
+from table_formatter import create_table_formatting_tools
 
 setup_paths()
 
@@ -35,6 +38,27 @@ def create_root_agent(
         all_tools.extend(init_tools)
     except:
         pass
+    
+    # Add dynamic agent creation tools
+    try:
+        all_tools.extend(create_dynamic_agent_tools(parent_model_id=react_llm_model_id))
+    except Exception as e:
+        if kwargs.get("debug", False):
+            print(f"Warning: Could not load dynamic agent tools: {e}")
+    
+    # Add ground truth verification tools
+    try:
+        all_tools.extend(create_ground_truth_tools())
+    except Exception as e:
+        if kwargs.get("debug", False):
+            print(f"Warning: Could not load ground truth tools: {e}")
+    
+    # Add table formatting tools
+    try:
+        all_tools.extend(create_table_formatting_tools())
+    except Exception as e:
+        if kwargs.get("debug", False):
+            print(f"Warning: Could not load table formatting tools: {e}")
     
     # Debug: Print available tools
     if kwargs.get("debug", False):
@@ -66,11 +90,14 @@ Step 4: Delegate to cost_benefit_agent with query: "Estimate maintenance costs f
    - Action Input: JSON with query key containing the query string
 Step 5: Delegate to safety_policy_agent with query: "Provide OSHA safety protocols and recommendations for equipment with low RUL"
    - Action Input: JSON with query key containing the query string
-Step 6: Synthesize ALL results into a comprehensive final answer with:
+Step 6: Verify predictions using verify_rul_predictions tool (if RUL predictions were made)
+Step 7: Format results using format_table tool with table_type="comprehensive" and include_verification=True
+Step 8: Synthesize ALL results into a comprehensive final answer with:
    - List of equipment IDs at risk (RUL <= 20 cycles)
-   - RUL predictions for each equipment
+   - RUL predictions for each equipment (verified against ground truth)
    - Cost estimates for maintenance
    - Safety recommendations and protocols
+   - Formatted as a table for easy reading
 
 IMPORTANT FORMATTING RULES:
 - For sub-agents: Action Input must be JSON with query key - query value must be a STRING, not a dict
@@ -95,9 +122,15 @@ Action Input: Your comprehensive final answer here
 
 CRITICAL: When providing the Final Answer, use Action: Finish and include in Action Input:
 1. Equipment IDs at risk (RUL <= 20 cycles) - list each equipment ID
-2. RUL predictions for each equipment - provide specific RUL values in cycles
+2. RUL predictions for each equipment - provide specific RUL values in cycles (verify with ground truth)
 3. Cost estimates for maintenance - provide dollar amounts for each equipment
 4. Safety recommendations and protocols - provide specific OSHA guidelines for each equipment
+5. Format the final answer as a table using format_table tool before finishing
+
+IMPORTANT: For RUL prediction tasks, you MUST:
+- Use verify_rul_predictions tool to compare predictions with ground truth
+- Use format_table tool to format results in a readable table format
+- Include verification results in the final answer
 
 Begin!
 Question: {question}

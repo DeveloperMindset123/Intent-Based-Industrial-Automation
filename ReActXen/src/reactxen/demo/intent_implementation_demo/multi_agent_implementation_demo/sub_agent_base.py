@@ -4,7 +4,13 @@ Sub-Agent Base - Common utilities for creating sub-agents.
 from typing import List, Any
 from langchain_core.prompts import PromptTemplate
 from reactxen.prebuilt.create_reactxen_agent import create_reactxen_agent
-from shared_utils import get_tool_descriptions, create_agent_prompt_template
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from shared.shared_utils import get_tool_descriptions, create_agent_prompt_template
 
 
 def create_sub_agent(

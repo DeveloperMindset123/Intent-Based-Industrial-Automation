@@ -25,3 +25,13 @@ ReActXen/src/reactxen/demo/intent_implementation_demo/downloaded_datasets/Planet
 ReActXen/src/reactxen/demo/intent_implementation_demo/downloaded_datasets/PlanetaryPdM/train/train.csv
 # Dev container configuration (not used)
 .devcontainer/
+
+# Markdown files (except README files)
+*.md
+!README.md
+!**/README.md
+!**/README*.md
+
+# Test run output files
+test_run_*.txt
+**/test_run_*.txt
