@@ -114,6 +114,14 @@ def extract_action_and_input(step: str, stop: Union[str, list]) -> str:
         if ActionStyle.SINGLE_LINE_TOOL_CALL:
             action_input = action_input.strip("\n").replace("\n", " ")
         tool_input = action_input.strip().strip('"')
+        
+        # CRITICAL FIX: Normalize action name - remove "Action: " prefix if present
+        # This fixes the issue where reflection causes "Action: tool_name" instead of "tool_name"
+        if action and action.strip().lower().startswith("action:"):
+            action = action.strip()[7:].strip()  # Remove "Action: " prefix
+        if action and action.strip().lower().startswith("tool:"):
+            action = action.strip()[5:].strip()  # Remove "Tool: " prefix
+        
         return {
             "action": action,
             "action_input": tool_input,
@@ -121,7 +129,7 @@ def extract_action_and_input(step: str, stop: Union[str, list]) -> str:
             "error_feedback": None,
         }
     else:
-        regex = "(.*)\s*Action\s*Input\s*\d*\s*:\s*(.*)"
+        regex = r"(.*)\s*Action\s*Input\s*\d*\s*:\s*(.*)"
         action_match = re.search(regex, step, re.DOTALL | re.IGNORECASE)
         if action_match:
             action = action_match.group(1).strip()
@@ -333,7 +341,7 @@ def format_step(
             }
         else:
             # print('came here.... ----->')
-            regex = "(.*)\s*Action\s*Input\s*\d*\s*:\s*(.*)"
+            regex = r"(.*)\s*Action\s*Input\s*\d*\s*:\s*(.*)"
             action_match = re.search(regex, step, re.DOTALL | re.IGNORECASE)
             if action_match:
                 action = action_match.group(1).strip()

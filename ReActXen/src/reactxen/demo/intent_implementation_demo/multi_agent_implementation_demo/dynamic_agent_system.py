@@ -1,6 +1,7 @@
 """
 Dynamic Agent System - Allows agents to create sub-agents and tools dynamically.
 Agents can write and execute their own code to reduce manual coding.
+Refactored to use modular tools.
 """
 import os
 import sys
@@ -16,6 +17,22 @@ from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Import code execution tool from refactored module
+try:
+    from tools.code_execution import CodeExecutionTool
+except ImportError:
+    # Fallback to local import if tools module not available
+    CodeExecutionTool = None
+
+# Import memory system for automatic recording
+try:
+    from memory_system import get_memory_system
+    _memory_available = True
+except ImportError:
+    _memory_available = False
+    def get_memory_system():
+        return None
 
 # Import with fallback for different directory structures
 try:
@@ -68,15 +85,215 @@ class CodeExecutionTool(BaseTool):
     
     args_schema: type[BaseModel] = CodeInput
     
-    def _run(self, code: str = None, return_result: bool = True, **kwargs) -> str:
+    def run(self, tool_input: Any = None, **kwargs) -> str:
+        """Override run method to handle input parsing manually before Pydantic validation."""
+        # CRITICAL FIX: ReactAgent checks for "=" before checking for JSON, so it may incorrectly
+        # parse JSON strings containing "axis=1" etc. as key-value pairs. We need to handle this.
+        
+        # FIRST: Try to get the original action_input from kwargs (this is the raw string from LLM)
+        original_action_input = kwargs.get('action_input', None)
+        if original_action_input and isinstance(original_action_input, str):
+            # If it looks like JSON, try to parse it directly
+            if original_action_input.strip().startswith('{') and original_action_input.strip().endswith('}'):
+                try:
+                    parsed = json.loads(original_action_input)
+                    if 'code' in parsed:
+                        # Success! Use this parsed version
+                        tool_input = parsed
+                except json.JSONDecodeError:
+                    pass  # Will try other methods below
+        
+        # Handle case where tool_input is a string (JSON string)
+        if isinstance(tool_input, str):
+            try:
+                tool_input = json.loads(tool_input)
+            except json.JSONDecodeError as e:
+                error_msg = f"ERROR: Invalid JSON string. Action Input must be valid JSON like: {{\"code\": \"your Python code here\"}}"
+                # Record parsing error in memory
+                if _memory_available:
+                    memory = get_memory_system()
+                    if memory:
+                        memory.record_mistake(
+                            action="execute_python_code",
+                            action_input=tool_input[:200] if tool_input else "",
+                            error=f"JSON parsing error: {str(e)}",
+                            context="JSON parsing failed in execute_python_code input"
+                        )
+                return error_msg
+        
+        # Handle case where tool_input is None or empty dict
+        if not tool_input or (isinstance(tool_input, dict) and len(tool_input) == 0):
+            # Try to get from kwargs
+            if 'code' in kwargs:
+                tool_input = {'code': kwargs['code'], 'return_result': kwargs.get('return_result', True)}
+            elif 'action_input' in kwargs:
+                action_input = kwargs['action_input']
+                if isinstance(action_input, str):
+                    # If it looks like JSON, try to parse it
+                    if action_input.strip().startswith('{') and action_input.strip().endswith('}'):
+                    try:
+                        tool_input = json.loads(action_input)
+                        except json.JSONDecodeError as e:
+                            error_msg = f"ERROR: Could not parse JSON from action_input. Action Input must be valid JSON like: {{\"code\": \"your Python code here\"}}"
+                            if _memory_available:
+                                memory = get_memory_system()
+                                if memory:
+                                    memory.record_mistake(
+                                        action="execute_python_code",
+                                        action_input=action_input[:200],
+                                        error=f"JSON decode error: {str(e)}",
+                                        context="JSON parsing failed in execute_python_code"
+                                    )
+                            return error_msg
+                    else:
+                        # Not JSON format - might be just the code string
+                        tool_input = {'code': action_input, 'return_result': True}
+                else:
+                    tool_input = action_input
+        
+        # If tool_input is still empty or missing code, provide helpful error
+        if not tool_input or not isinstance(tool_input, dict):
+            error_msg = "ERROR: Missing or invalid input. Action Input must be a JSON object with 'code' key containing your Python code as a string."
+            # Record parsing error in memory
+            if _memory_available:
+                memory = get_memory_system()
+                if memory:
+                    memory.record_mistake(
+                        action="execute_python_code",
+                        action_input=str(tool_input)[:200] if tool_input else "",
+                        error="Missing or invalid input - not a dict",
+                        context="Input validation failed in execute_python_code"
+                    )
+            return error_msg
+        
+        # CRITICAL FIX: Handle case where ReactAgent incorrectly parsed JSON as key-value pairs
+        # When ReactAgent sees "=" in the JSON string, it extracts it as key-value pairs instead of
+        # parsing the full JSON. We need to detect this and reconstruct from kwargs or action_input.
+        if 'code' not in tool_input:
+            # Check if we have wrong keys (like 'axis' which indicates incorrect parsing)
+            received_keys = list(tool_input.keys())
+            
+            # Try to get the original action_input from kwargs (this is the raw string from LLM)
+            original_action_input = kwargs.get('action_input', None)
+            if original_action_input and isinstance(original_action_input, str):
+                # If it looks like JSON, try to parse it directly
+                if original_action_input.strip().startswith('{') and original_action_input.strip().endswith('}'):
+                    try:
+                        # Try to parse as JSON directly
+                        tool_input = json.loads(original_action_input)
+                        if 'code' in tool_input:
+                            # Success! Use this instead
+                            pass
+                        else:
+                            error_msg = f"ERROR: Missing 'code' key in input. Received keys: {received_keys}. Action Input format: {{\"code\": \"your Python code as string\"}}"
+                            if _memory_available:
+                                memory = get_memory_system()
+                                if memory:
+                                    memory.record_mistake(
+                                        action="execute_python_code",
+                                        action_input=str(tool_input)[:200],
+                                        error=f"Missing 'code' key. Received keys: {received_keys}",
+                                        context="JSON parsing issue - missing code key"
+                                    )
+                            return error_msg
+                    except json.JSONDecodeError as e:
+                        error_msg = f"ERROR: Could not parse JSON from action_input. Action Input must be valid JSON like: {{\"code\": \"your Python code here\"}}"
+                        if _memory_available:
+                            memory = get_memory_system()
+                            if memory:
+                                memory.record_mistake(
+                                    action="execute_python_code",
+                                    action_input=str(original_action_input)[:200],
+                                    error=f"JSON decode error: {str(e)}",
+                                    context="JSON parsing failed in execute_python_code"
+                                )
+                        return error_msg
+                else:
+                    # Not JSON format - ReactAgent may have incorrectly parsed it
+                    error_msg = f"ERROR: Missing 'code' key in input. Received keys: {received_keys}. Action Input format: {{\"code\": \"your Python code as string\"}}. This may indicate that the ReactAgent incorrectly parsed JSON containing '=' characters. Try using learning_analyze tool to understand the issue."
+                    if _memory_available:
+                        memory = get_memory_system()
+                        if memory:
+                            # Check if this is a repeated mistake
+                            should_avoid, avoid_reason = memory.should_avoid_action("execute_python_code", str(tool_input))
+                            if should_avoid:
+                                error_msg += f"\n\n⚠️ MEMORY WARNING: {avoid_reason}\n💡 SUGGESTION: Use learning_analyze tool to get recommendations: Action: learning_analyze, Action Input: {{\"action\": \"execute_python_code\", \"error\": \"Missing code key\"}}"
+                            
+                            memory.record_mistake(
+                                action="execute_python_code",
+                                action_input=str(tool_input)[:200],
+                                error=f"Missing 'code' key. Received keys: {received_keys}. Possible ReactAgent parsing bug",
+                                context="JSON parsing issue - ReactAgent may have incorrectly parsed JSON"
+                            )
+                    return error_msg
+            else:
+                error_msg = f"ERROR: Missing 'code' key in input. Received keys: {received_keys}. Action Input format: {{\"code\": \"your Python code as string\"}}"
+                if _memory_available:
+                    memory = get_memory_system()
+                    if memory:
+                        # Check if this is a repeated mistake
+                        should_avoid, avoid_reason = memory.should_avoid_action("execute_python_code", str(tool_input))
+                        if should_avoid:
+                            error_msg += f"\n\n⚠️ MEMORY WARNING: {avoid_reason}\n💡 SUGGESTION: Use learning_analyze tool: Action: learning_analyze, Action Input: {{\"action\": \"execute_python_code\", \"error\": \"Missing code key\"}}"
+                        
+                        memory.record_mistake(
+                            action="execute_python_code",
+                            action_input=str(tool_input)[:200] if tool_input else "",
+                            error=f"Missing 'code' key. Received keys: {received_keys}",
+                            context="Input validation failed - missing code key"
+                        )
+                return error_msg
+        
+        # Extract code and return_result from tool_input
+        code = tool_input['code']
+        return_result = tool_input.get('return_result', True)
+        
+        # Call _run directly with parsed values to bypass Pydantic validation issues
+        return self._run(code=code, return_result=return_result, tool_input=tool_input, **kwargs)
+    
+    def _run(self, code: str = None, return_result: bool = True, tool_input: dict = None, **kwargs) -> str:
         """Execute Python code safely with improved error handling."""
+        # Handle tool_input parameter (used by ReActXen framework)
+        if tool_input is not None:
+            if isinstance(tool_input, dict):
+                if 'code' in tool_input:
+                    code = tool_input['code']
+                    if 'return_result' in tool_input:
+                        return_result = tool_input['return_result']
+                else:
+                    # Try to parse if it's a JSON string
+                    if len(tool_input) == 0:
+                        return "ERROR: Empty input received. Action Input must be a JSON object with 'code' key containing your Python code as a string."
+                    return f"ERROR: Missing 'code' key in input. Received keys: {list(tool_input.keys())}. Action Input must be JSON like: {{\"code\": \"your Python code here\"}}"
+        
         # Handle case where code might be passed in kwargs or as None
         if code is None:
             # Try to get from kwargs
             if 'code' in kwargs:
                 code = kwargs['code']
+            # Try to parse from action_input if it's a dict
+            elif 'action_input' in kwargs:
+                action_input = kwargs['action_input']
+                if isinstance(action_input, str):
+                    try:
+                        action_input = json.loads(action_input)
+                    except json.JSONDecodeError:
+                        return f"ERROR: Could not parse JSON. Action Input must be valid JSON like: {{\"code\": \"your Python code here\"}}"
+                if isinstance(action_input, dict) and 'code' in action_input:
+                    code = action_input['code']
+                    if 'return_result' in action_input:
+                        return_result = action_input['return_result']
+                elif isinstance(action_input, dict):
+                    return f"ERROR: Missing 'code' key. Received keys: {list(action_input.keys())}. Action Input format: {{\"code\": \"your Python code as string\"}}"
             else:
-                return "ERROR: Missing required 'code' parameter. Action Input must be JSON like: {\"code\": \"your Python code here\"}"
+                return "ERROR: Missing required 'code' parameter. Action Input must be a JSON object with 'code' key containing your Python code as a string."
+        
+        # Handle case where code might be a dict (malformed input)
+        if isinstance(code, dict):
+            if 'code' in code:
+                code = code['code']
+            else:
+                return f"ERROR: Input is a dict but missing 'code' key. Received keys: {list(code.keys())}. Action Input format: {{\"code\": \"your Python code as string\"}}"
         
         # Ensure code is a string
         if not isinstance(code, str):
@@ -99,18 +316,84 @@ class CodeExecutionTool(BaseTool):
             
             # Check for result variable
             if return_result and 'result' in safe_globals:
-                return str(safe_globals['result'])
+                result = str(safe_globals['result'])
+                # Record success in memory
+                if _memory_available:
+                    memory = get_memory_system()
+                    if memory:
+                        memory.record_solution(
+                            action="execute_python_code",
+                            action_input=code[:200] if code else "",
+                            result=result[:200],
+                            context="Python code executed successfully"
+                        )
+                return result
             elif return_result:
-                return "Code executed successfully (no result variable set). Tip: Set 'result = your_value' to return a value."
+                result = "Code executed successfully (no result variable set). Tip: Set 'result = your_value' to return a value."
+                # Record success in memory
+                if _memory_available:
+                    memory = get_memory_system()
+                    if memory:
+                        memory.record_solution(
+                            action="execute_python_code",
+                            action_input=code[:200] if code else "",
+                            result="Code executed successfully",
+                            context="Python code executed successfully"
+                        )
+                return result
             else:
-                return "Code executed successfully"
+                result = "Code executed successfully"
+                # Record success in memory
+                if _memory_available:
+                    memory = get_memory_system()
+                    if memory:
+                        memory.record_solution(
+                            action="execute_python_code",
+                            action_input=code[:200] if code else "",
+                            result="Code executed successfully",
+                            context="Python code executed successfully"
+                        )
+                return result
                 
         except SyntaxError as e:
-            return f"Syntax Error in code: {str(e)}\n\nPlease check your Python syntax and try again."
+            error_msg = f"Syntax Error in code: {str(e)}\n\nPlease check your Python syntax and try again."
+            # Record mistake in memory
+            if _memory_available:
+                memory = get_memory_system()
+                if memory:
+                    memory.record_mistake(
+                        action="execute_python_code",
+                        action_input=code[:200] if code else "",
+                        error=str(e),
+                        context="Syntax error in Python code execution"
+                    )
+            return error_msg
         except NameError as e:
-            return f"Name Error: {str(e)}\n\nMake sure all variables and functions are defined before use."
+            error_msg = f"Name Error: {str(e)}\n\nMake sure all variables and functions are defined before use."
+            # Record mistake in memory
+            if _memory_available:
+                memory = get_memory_system()
+                if memory:
+                    memory.record_mistake(
+                        action="execute_python_code",
+                        action_input=code[:200] if code else "",
+                        error=str(e),
+                        context="Name error in Python code execution"
+                    )
+            return error_msg
         except Exception as e:
-            return f"Error executing code: {type(e).__name__}: {str(e)}\n\nPlease review your code and fix the error."
+            error_msg = f"Error executing code: {type(e).__name__}: {str(e)}\n\nPlease review your code and fix the error."
+            # Record mistake in memory
+            if _memory_available:
+                memory = get_memory_system()
+                if memory:
+                    memory.record_mistake(
+                        action="execute_python_code",
+                        action_input=code[:200] if code else "",
+                        error=str(e),
+                        context="Error in Python code execution"
+                    )
+            return error_msg
 
 
 class CreateSubAgentTool(BaseTool):
@@ -280,6 +563,52 @@ class CreateDynamicToolTool(BaseTool):
         super().__init__(**kwargs)
         self._dynamic_tools = {}
     
+    def run(self, tool_input: Any = None, **kwargs) -> str:
+        """Override run method to handle ReactAgent parsing issues."""
+        import json
+        
+        # Handle case where ReactAgent incorrectly parsed JSON as key-value pairs
+        if tool_input is None:
+            tool_input = {}
+        elif not isinstance(tool_input, dict):
+            tool_input = {}
+        
+        # Check if ReactAgent incorrectly parsed JSON (missing required fields)
+        if not all(k in tool_input for k in ['tool_name', 'tool_description', 'code']):
+            # Try to get the original action_input from kwargs
+            if 'action_input' in kwargs:
+                action_input = kwargs['action_input']
+                if isinstance(action_input, str) and action_input.strip().startswith('{'):
+                    try:
+                        # Try to parse as JSON directly
+                        tool_input = json.loads(action_input)
+                    except json.JSONDecodeError:
+                        pass
+            
+            # If still missing required fields, return helpful error
+            if not all(k in tool_input for k in ['tool_name', 'tool_description', 'code']):
+                received_keys = list(tool_input.keys())
+                error_msg = f"ERROR: Missing required keys in input. Required: tool_name, tool_description, code. Received keys: {received_keys}. Action Input must be valid JSON like: {{\"tool_name\": \"name\", \"tool_description\": \"desc\", \"code\": \"your code here\", \"parameters\": null}}"
+                # Record mistake in memory
+                if _memory_available:
+                    memory = get_memory_system()
+                    if memory:
+                        memory.record_mistake(
+                            action="create_dynamic_tool",
+                            action_input=str(tool_input)[:200] if tool_input else "",
+                            error="Missing required keys",
+                            context="JSON parsing error in create_dynamic_tool"
+                        )
+                return error_msg
+        
+        # Call _run with parsed values
+        return self._run(
+            tool_name=tool_input.get('tool_name', ''),
+            tool_description=tool_input.get('tool_description', ''),
+            code=tool_input.get('code', ''),
+            parameters=tool_input.get('parameters', '{}')
+        )
+    
     def _run(
         self,
         tool_name: str,
@@ -323,10 +652,32 @@ class {tool_name}Tool(BaseTool):
             tool_class = exec_globals[f'{tool_name}Tool']
             self._dynamic_tools[tool_name] = tool_class()
             
-            return f"✅ Created tool '{tool_name}'. It is now available for use."
+            result = f"✅ Created tool '{tool_name}'. It is now available for use."
+            # Record success in memory
+            if _memory_available:
+                memory = get_memory_system()
+                if memory:
+                    memory.record_solution(
+                        action="create_dynamic_tool",
+                        action_input=f"tool_name={tool_name}",
+                        result=result,
+                        context="Dynamic tool created successfully"
+                    )
+            return result
             
         except Exception as e:
-            return f"Error creating tool: {str(e)}"
+            error_msg = f"Error creating tool: {str(e)}"
+            # Record mistake in memory
+            if _memory_available:
+                memory = get_memory_system()
+                if memory:
+                    memory.record_mistake(
+                        action="create_dynamic_tool",
+                        action_input=f"tool_name={tool_name}",
+                        error=str(e),
+                        context="Error creating dynamic tool"
+                    )
+            return error_msg
     
     def _indent_code(self, code: str, indent: int = 8) -> str:
         """Indent code for proper formatting."""

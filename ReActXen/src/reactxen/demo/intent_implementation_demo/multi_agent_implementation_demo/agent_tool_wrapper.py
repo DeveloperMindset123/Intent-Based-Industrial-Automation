@@ -48,11 +48,28 @@ class AgentTool(BaseTool):
         """
         Override run method to properly handle JSON input parsing.
         This ensures the query parameter is correctly extracted from the tool_input.
+        Handles ReactAgent parsing bug where JSON containing "=" is incorrectly parsed.
         """
         try:
             # Handle different input formats
             if tool_input is None:
                 tool_input = kwargs
+            
+            # CRITICAL FIX: Handle case where ReactAgent incorrectly parsed JSON as key-value pairs
+            # When ReactAgent sees "=" in the JSON string, it extracts it as {"key": "value"} instead
+            # of parsing the full JSON. We need to detect this and reconstruct from kwargs or action_input.
+            if isinstance(tool_input, dict) and 'query' not in tool_input and len(tool_input) == 0:
+                # Empty dict - ReactAgent probably failed to parse JSON
+                # Try to get the original action_input from kwargs
+                if 'action_input' in kwargs:
+                    action_input = kwargs['action_input']
+                    if isinstance(action_input, str) and action_input.strip().startswith('{'):
+                        try:
+                            # Try to parse as JSON directly
+                            tool_input = json.loads(action_input)
+                        except json.JSONDecodeError:
+                            # If still can't parse, treat as query string
+                            return self._run(query=action_input)
             
             # If tool_input is a string (JSON), parse it
             if isinstance(tool_input, str):
@@ -75,9 +92,26 @@ class AgentTool(BaseTool):
                             query = tool_input[key]
                             break
                     
+                    # If still no query but we have action_input in kwargs, try that
+                    if not query and 'action_input' in kwargs:
+                        action_input = kwargs['action_input']
+                        if isinstance(action_input, str):
+                            if action_input.strip().startswith('{'):
+                                try:
+                                    parsed = json.loads(action_input)
+                                    query = parsed.get('query', action_input)
+                                except:
+                                    query = action_input
+                            else:
+                                query = action_input
+                    
                     # If still no query, use the whole dict as a string representation
                     if not query:
                         query = str(tool_input)
+                
+                # Ensure query is not empty
+                if not query or query == '{}':
+                    return "ERROR: Missing 'query' key in input. Action Input must be JSON like: {\"query\": \"your question here\"}"
                 
                 return self._run(query=query, context=context)
             

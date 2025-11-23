@@ -1,12 +1,40 @@
-"""Simplified data loading for RUL prediction."""
+"""Enhanced data loading for RUL prediction with HuggingFace integration."""
 import pandas as pd
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict
 from datasets import load_dataset, DatasetDict
 import json
+import os
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv(override=False)
+
+# Data directories
 DATA_DIR = Path(__file__).parent / "downloaded_datasets"
 DATA_DIR.mkdir(exist_ok=True)
+
+# Project data directory (where CMAPSSData is stored)
+PROJECT_DATA_DIR = Path(__file__).parent.parent.parent.parent.parent / "data"
+PROJECT_DATA_DIR.mkdir(exist_ok=True)
+
+# Available HuggingFace datasets
+AVAILABLE_DATASETS = [
+    "submission096/XJTU",
+    "submission096/MAFAULDA",
+    "submission096/Padeborn",
+    "submission096/IMS",
+    "submission096/UoC",
+    "submission096/RotorBrokenBar",
+    "submission096/MFPT",
+    "submission096/HUST",
+    "submission096/FEMTO",
+    "submission096/Mendeley",
+    "submission096/ElectricMotorVibrations",
+    "submission096/CWRU",
+    "submission096/Azure",
+    "submission096/PlanetaryPdM",
+]
 
 # Global data storage
 train_data = None
@@ -36,15 +64,112 @@ def load_saved_dataset(dataset_name: str, split: Optional[str] = None, format: s
             return dataset
     raise ValueError(f"Could not load dataset {dataset_name}")
 
-def list_available_datasets():
-    """List all available datasets."""
-    if not DATA_DIR.exists():
-        return []
+def download_and_save_dataset(hf_dataset_path: str, force_download: bool = False) -> Dict:
+    """Download a HuggingFace dataset and save it locally."""
+    try:
+        dataset_name = hf_dataset_path.split("/")[-1]
+        dataset_dir = DATA_DIR / dataset_name
+        dataset_dir.mkdir(exist_ok=True)
+        
+        # Check if already downloaded
+        metadata_file = dataset_dir / "metadata.json"
+        if metadata_file.exists() and not force_download:
+            return {"status": "already_exists", "dataset_name": dataset_name}
+        
+        # Set HuggingFace token from environment
+        hf_token = os.environ.get("HF_API_KEY") or os.environ.get("HUGGINGFACE_API_KEY")
+        
+        # Load dataset from HuggingFace
+        if hf_token:
+            dataset = load_dataset(hf_dataset_path, token=hf_token)
+        else:
+            dataset = load_dataset(hf_dataset_path)
+        
+        # Save dataset
+        dataset_path = dataset_dir / "dataset"
+        if isinstance(dataset, DatasetDict):
+            dataset.save_to_disk(str(dataset_path))
+            splits = list(dataset.keys())
+        else:
+            # Single split dataset
+            dataset.save_to_disk(str(dataset_path))
+            splits = ["train"]
+        
+        # Convert to pandas and save CSVs
+        total_rows = 0
+        if isinstance(dataset, DatasetDict):
+            for split_name in splits:
+                split_data = dataset[split_name]
+                df = split_data.to_pandas()
+                total_rows += len(df)
+                split_dir = dataset_dir / split_name
+                split_dir.mkdir(exist_ok=True)
+                df.to_csv(split_dir / f"{split_name}.csv", index=False)
+                
+                # Save to project data directory as well
+                project_split_dir = PROJECT_DATA_DIR / dataset_name / split_name
+                project_split_dir.mkdir(parents=True, exist_ok=True)
+                df.to_csv(project_split_dir / f"{split_name}.csv", index=False)
+        else:
+            df = dataset.to_pandas()
+            total_rows = len(df)
+            df.to_csv(dataset_dir / "data.csv", index=False)
+            splits = ["train"]
+            
+            # Save to project data directory as well
+            project_data_dir = PROJECT_DATA_DIR / dataset_name
+            project_data_dir.mkdir(parents=True, exist_ok=True)
+            df.to_csv(project_data_dir / "data.csv", index=False)
+        
+        # Calculate total size
+        try:
+            total_size = sum(f.stat().st_size for f in dataset_dir.rglob("*") if f.is_file()) / (1024 * 1024)
+        except:
+            total_size = 0
+        
+        # Save metadata
+        metadata = {
+            "dataset_name": dataset_name,
+            "hf_path": hf_dataset_path,
+            "splits": splits,
+            "num_rows": total_rows,
+            "total_size_mb": round(total_size, 2),
+        }
+        
+        with open(metadata_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+        
+        return {"status": "success", "dataset_name": dataset_name, "metadata": metadata}
+        
+    except Exception as e:
+        return {"status": "error", "error": str(e), "dataset_path": hf_dataset_path}
+
+
+def list_available_datasets() -> List[str]:
+    """List all available datasets (both local and HuggingFace)."""
     datasets = []
-    for item in DATA_DIR.iterdir():
-        if item.is_dir() and (item / "metadata.json").exists():
+    
+    # Check local downloaded datasets
+    if DATA_DIR.exists():
+        for item in DATA_DIR.iterdir():
+            if item.is_dir() and (item / "metadata.json").exists():
                 datasets.append(item.name)
+    
     return sorted(datasets)
+
+
+def list_huggingface_datasets() -> List[str]:
+    """List all available HuggingFace dataset paths."""
+    return AVAILABLE_DATASETS
+
+
+def download_all_datasets(force_download: bool = False) -> Dict:
+    """Download all available HuggingFace datasets."""
+    results = {}
+    for hf_path in AVAILABLE_DATASETS:
+        dataset_name = hf_path.split("/")[-1]
+        results[dataset_name] = download_and_save_dataset(hf_path, force_download)
+    return results
 
 def get_dataset_info(dataset_name: str):
     """Get dataset metadata."""

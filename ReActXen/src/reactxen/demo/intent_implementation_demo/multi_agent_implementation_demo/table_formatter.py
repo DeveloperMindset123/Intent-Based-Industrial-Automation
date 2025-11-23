@@ -4,6 +4,20 @@ Table formatting utilities for agent responses.
 from typing import List, Dict, Any, Optional
 from tabulate import tabulate
 
+# Fallback if tabulate is not available
+def tabulate(data, headers, tablefmt="grid", floatfmt=".2f"):
+    """Simple fallback table formatter."""
+    if not data:
+        return "No data to display"
+    result = " | ".join(str(h) for h in headers) + "\n"
+    result += "-" * len(result) + "\n"
+    for row in data:
+        result += " | ".join(str(cell) for cell in row) + "\n"
+    return result
+
+from langchain_core.tools import BaseTool
+from pydantic import BaseModel, Field
+
 
 def format_rul_results_table(
     equipment_data: List[Dict[str, Any]],
@@ -191,11 +205,29 @@ class FormatTableTool(BaseTool):
     
     def _run(
         self,
-        data: List[Dict[str, Any]],
+        data,
         table_type: str = "comprehensive",
         include_verification: bool = False
     ) -> str:
         """Format data as table."""
+        import json
+        
+        # Handle string input (ReactAgent may truncate JSON)
+        if isinstance(data, str):
+            try:
+                # Try to parse as JSON
+                parsed = json.loads(data)
+                if isinstance(parsed, dict) and "data" in parsed:
+                    data = parsed["data"]
+                else:
+                    data = parsed
+            except json.JSONDecodeError:
+                return f"❌ Invalid JSON input for data. If the data is too large, use execute_code_simple to format it programmatically. Input: {data[:200]}"
+        
+        # Ensure data is a list
+        if not isinstance(data, list):
+            return f"❌ Expected list, got {type(data).__name__}: {str(data)[:200]}"
+        
         try:
             if table_type == "rul":
                 return format_rul_results_table(data, include_verification)

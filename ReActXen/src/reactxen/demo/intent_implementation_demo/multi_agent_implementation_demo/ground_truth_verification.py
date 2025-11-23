@@ -10,26 +10,46 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
-# Ground truth file path
-GROUND_TRUTH_FILE = Path(__file__).parent.parent.parent.parent.parent / "data" / "CMAPSSData" / "RUL_FD001.txt"
+# Ground truth file path - try multiple possible locations
+def find_ground_truth_file():
+    """Find the ground truth file in various possible locations."""
+    current_file = Path(__file__)
+    # Try various relative paths from the current file location
+    possible_paths = [
+        # From intent_implementation_demo directory
+        current_file.parent.parent.parent.parent / "data" / "CMAPSSData" / "RUL_FD001.txt",
+        # From project root
+        current_file.parent.parent.parent.parent.parent / "data" / "CMAPSSData" / "RUL_FD001.txt",
+        # Absolute path (if data is in project root)
+        Path("/Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/data/CMAPSSData/RUL_FD001.txt"),
+        # Relative from current
+        current_file.parent / "data" / "CMAPSSData" / "RUL_FD001.txt",
+        current_file.parent.parent / "data" / "CMAPSSData" / "RUL_FD001.txt",
+        # From shared/data
+        current_file.parent.parent / "shared" / "downloaded_datasets" / "CMAPSSData" / "RUL_FD001.txt",
+        # From data directory in project
+        Path(__file__).parent.parent.parent.parent.parent / "data" / "CMAPSSData" / "RUL_FD001.txt",
+    ]
+    for path in possible_paths:
+        if path.exists():
+            return path
+    return None
+
+GROUND_TRUTH_FILE = find_ground_truth_file()
 
 
 def load_ground_truth() -> List[int]:
     """Load ground truth RUL values from RUL_FD001.txt."""
+    gt_file = find_ground_truth_file()
+    if gt_file is None:
+        return []
+    
     try:
-        with open(GROUND_TRUTH_FILE, 'r') as f:
+        with open(gt_file, 'r') as f:
             rul_values = [int(line.strip()) for line in f if line.strip()]
         return rul_values
-    except FileNotFoundError:
-        # Try alternative path
-        alt_path = Path(__file__).parent / "data" / "CMAPSSData" / "RUL_FD001.txt"
-        if alt_path.exists():
-            with open(alt_path, 'r') as f:
-                rul_values = [int(line.strip()) for line in f if line.strip()]
-            return rul_values
-        return []
     except Exception as e:
-        print(f"Error loading ground truth: {e}")
+        print(f"Error loading ground truth from {gt_file}: {e}")
         return []
 
 
@@ -134,8 +154,8 @@ class VerifyRULPredictionsTool(BaseTool):
     name: str = "verify_rul_predictions"
     description: str = """Verify RUL predictions against ground truth data.
     
-    Input: JSON with 'predictions' key containing dict of {engine_id: predicted_rul}
-    Example: {"predictions": {"1": 18, "2": 15, "3": 12}}
+    Input: JSON with predictions key containing dict mapping engine_id to predicted_rul
+    Each prediction maps an engine ID to its predicted remaining useful life in cycles
     
     Returns: Verification results with accuracy metrics.
     """
@@ -147,10 +167,37 @@ class VerifyRULPredictionsTool(BaseTool):
     
     args_schema: type[BaseModel] = VerifyInput
     
-    def _run(self, predictions: Dict[str, int]) -> str:
+    def _run(self, predictions) -> str:
         """Verify predictions against ground truth."""
+        import json
+        
+        # Handle string input (ReactAgent may truncate JSON)
+        if isinstance(predictions, str):
+            try:
+                # Try to parse as JSON
+                parsed = json.loads(predictions)
+                if isinstance(parsed, dict) and "predictions" in parsed:
+                    predictions = parsed["predictions"]
+                else:
+                    predictions = parsed
+            except json.JSONDecodeError:
+                # If JSON parsing fails, try to extract from truncated string
+                # Look for patterns like {"1": 100, "2": 200, ...
+                import re
+                match = re.search(r'\{[^}]*"(\d+)"\s*:\s*(\d+)', predictions)
+                if match:
+                    return f"❌ JSON input was truncated. Please use execute_code_simple to verify predictions programmatically. Example: execute_code_simple with code that calls verify_rul_predictions(predictions_dict)."
+                return f"❌ Invalid JSON input: {predictions[:200]}"
+        
+        # Handle dict input
+        if not isinstance(predictions, dict):
+            return f"❌ Expected dict, got {type(predictions).__name__}: {str(predictions)[:200]}"
+        
         # Convert string keys to int
-        predictions_int = {int(k): int(v) for k, v in predictions.items()}
+        try:
+            predictions_int = {int(k): int(v) for k, v in predictions.items()}
+        except (ValueError, TypeError) as e:
+            return f"❌ Error converting predictions: {str(e)}. Input: {str(predictions)[:200]}"
         
         result = verify_rul_predictions(predictions_int)
         

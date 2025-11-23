@@ -17,7 +17,11 @@ from shared.load_data import (
     load_saved_dataset,
     get_dataset_info,
     load_dataset_for_analysis as load_dataset_for_analysis_impl,
+    download_and_save_dataset,
+    list_huggingface_datasets,
+    download_all_datasets,
     DATA_DIR,
+    AVAILABLE_DATASETS,
 )
 
 
@@ -139,11 +143,85 @@ class GetDatasetInfoTool(BaseTool):
         return json.dumps(info, indent=2)
 
 
+class DownloadDatasetInput(BaseModel):
+    """Input schema for download_dataset tool."""
+    hf_dataset_path: str = Field(
+        description="HuggingFace dataset path (e.g., 'submission096/CWRU', 'submission096/Azure')"
+    )
+    force_download: bool = Field(
+        default=False,
+        description="Force re-download even if dataset already exists"
+    )
+
+
+class DownloadDatasetTool(BaseTool):
+    """Download a HuggingFace dataset to local storage."""
+    
+    name: str = "download_dataset"
+    description: str = """Download a HuggingFace dataset to local storage.
+    
+    Available datasets:
+    - submission096/XJTU
+    - submission096/MAFAULDA
+    - submission096/Padeborn
+    - submission096/IMS
+    - submission096/UoC
+    - submission096/RotorBrokenBar
+    - submission096/MFPT
+    - submission096/HUST
+    - submission096/FEMTO
+    - submission096/Mendeley
+    - submission096/ElectricMotorVibrations
+    - submission096/CWRU
+    - submission096/Azure
+    - submission096/PlanetaryPdM
+    
+    Returns: Download status and metadata.
+    """
+    args_schema: type[BaseModel] = DownloadDatasetInput
+    
+    def _run(self, hf_dataset_path: str, force_download: bool = False) -> str:
+        """Download a HuggingFace dataset."""
+        try:
+            result = download_and_save_dataset(hf_dataset_path, force_download)
+            if result["status"] == "success":
+                return f"✅ Downloaded {result['dataset_name']}: {result['metadata']}"
+            elif result["status"] == "already_exists":
+                return f"ℹ️  Dataset {result['dataset_name']} already exists. Use force_download=True to re-download."
+            else:
+                return f"❌ Error downloading {hf_dataset_path}: {result.get('error', 'Unknown error')}"
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
+class ListHuggingFaceDatasetsTool(BaseTool):
+    """List all available HuggingFace dataset paths."""
+    
+    name: str = "list_huggingface_datasets"
+    description: str = """List all available HuggingFace dataset paths.
+    
+    Returns a list of dataset paths that can be downloaded using download_dataset tool.
+    """
+    args_schema: type[BaseModel] = EmptyInput
+    
+    def _run(self) -> str:
+        """List available HuggingFace datasets."""
+        datasets = list_huggingface_datasets()
+        result = f"📦 Available HuggingFace Datasets ({len(datasets)}):\n\n"
+        for hf_path in datasets:
+            dataset_name = hf_path.split("/")[-1]
+            result += f"  • {hf_path} (name: {dataset_name})\n"
+        result += "\nUse download_dataset tool with hf_dataset_path parameter to download a dataset."
+        return result
+
+
 def create_dataset_tools() -> List[BaseTool]:
     """Create and return dataset-related tools."""
     return [
         ListDatasetsTool(),
         LoadDatasetTool(),
         GetDatasetInfoTool(),
+        DownloadDatasetTool(),
+        ListHuggingFaceDatasetsTool(),
     ]
 

@@ -16,10 +16,19 @@ def load_env_vars():
         Path(__file__).parent / ".env",
     ]
     for env_path in env_paths:
-        if env_path.exists():
-            load_dotenv(env_path, override=False)
-            return
-    load_dotenv(override=False)
+        try:
+            if env_path.exists():
+                load_dotenv(env_path, override=False)
+                return
+        except PermissionError:
+            # In restricted environments (e.g., sandboxed runs), we may not be allowed
+            # to read the .env file. In that case, continue without failing.
+            continue
+    try:
+        load_dotenv(override=False)
+    except PermissionError:
+        # Ignore permission issues when reading default .env locations
+        pass
 
 # Add source path
 def setup_paths():
