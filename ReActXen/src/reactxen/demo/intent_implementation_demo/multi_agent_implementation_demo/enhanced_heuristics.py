@@ -38,7 +38,9 @@ class HeuristicLearner:
         "If format_table receives truncated JSON: Use execute_code_simple with code that calls format_table functions directly",
         "CRITICAL: After load_dataset, access data using: from shared.load_data import train_data, test_data, ground_truth. DO NOT read CSV files directly.",
         "CRITICAL: For RUL prediction tasks, ground truth validation is REQUIRED. Use verify_rul_predictions tool or execute_code_simple to verify predictions against ground_truth.",
-        "When using WatsonX models: Use one of the supported models from the error message, NOT custom model names like 'rul_prediction_model'"
+        "CRITICAL: DO NOT use 'rul_prediction_model' or 'set_model_id' with custom model names. These models don't exist. For RUL prediction, use execute_code_simple or execute_python_code to create predictions directly from the data.",
+        "CRITICAL: If predict_rul tool fails with 'Model not supported', IMMEDIATELY switch to execute_code_simple to create RUL predictions using Python code. Do NOT try to set_model_id or train_model.",
+        "For RUL prediction: Use execute_code_simple with code that: 1) imports train_data, test_data, ground_truth from shared.load_data, 2) Creates predictions dict, 3) Verifies with verify_rul_predictions(predictions, ground_truth), 4) Prints results"
     ]
     
     def __init__(self):

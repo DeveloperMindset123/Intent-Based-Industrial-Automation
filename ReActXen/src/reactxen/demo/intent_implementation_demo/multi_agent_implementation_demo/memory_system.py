@@ -91,6 +91,13 @@ class MemorySystem:
         # Update tool usage stats
         self.tool_usage_stats[action]["failure"] += 1
         
+        # Check for repeated mistakes (loop detection)
+        recent_mistakes = [m for m in self.memory["mistakes"][-10:] if m.get("action") == action]
+        if len(recent_mistakes) >= 3:
+            # Add high-priority heuristic to avoid this loop
+            heuristic = f"CRITICAL LOOP DETECTED: {action} has failed {len(recent_mistakes)} times. STOP using this action and find alternative approach."
+            self.add_heuristic(heuristic, priority=0)  # Highest priority
+        
         self._save_memory()
     
     def record_solution(

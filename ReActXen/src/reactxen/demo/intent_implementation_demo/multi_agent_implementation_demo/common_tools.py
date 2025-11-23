@@ -161,19 +161,31 @@ class SimpleCodeExecutionTool(BaseTool):
                         for entry in reversed(json_log[-10:]):  # Check last 10 entries
                             # Try raw_llm_action_output first (most reliable - before ReactAgent processing)
                             raw_output = entry.get('raw_llm_action_output', '')
-                            if raw_output and isinstance(raw_output, str) and 'execute_code_simple' in raw_output:
+                            # Check if this entry is for execute_code_simple (check action field too)
+                            action_field = entry.get('action', '')
+                            is_execute_code_simple = (
+                                'execute_code_simple' in raw_output or 
+                                'execute_code_simple' in action_field or
+                                entry.get('action', '').strip() == 'execute_code_simple'
+                            )
+                            
+                            if raw_output and isinstance(raw_output, str) and is_execute_code_simple:
                                 # Look for the JSON in the raw output
                                 # Pattern: Action Input N: {"code": "..."}
                                 # CRITICAL: ReactAgent may have replaced newlines with spaces, so we need flexible matching
                                 patterns = [
-                                    # Pattern 1: Standard format with escaped newlines
+                                    # Pattern 1: Standard format with escaped newlines (most specific)
                                     r'Action\s+Input\s+\d+:\s*\{[^}]*"code"\s*:\s*"([^"]*(?:\\.[^"]*)*)"',
                                     # Pattern 2: Match even if newlines were replaced with spaces (more flexible)
                                     r'Action\s+Input\s+\d+:\s*\{[^}]*"code"\s*:\s*"([^"]+)"',
-                                    # Pattern 3: Direct code extraction (greedy)
+                                    # Pattern 3: Match JSON object with code key (handles multi-line corruption)
+                                    r'\{[^}]*"code"\s*:\s*"([^"]*(?:\\.[^"]*)*)"',
+                                    # Pattern 4: Direct code extraction (greedy, handles escaped quotes)
                                     r'"code"\s*:\s*"([^"]*(?:\\.[^"]*)*)"',
-                                    # Pattern 4: Match with spaces where newlines were (ReactAgent's corruption)
+                                    # Pattern 5: Match with spaces where newlines were (ReactAgent's corruption)
                                     r'"code"\s*:\s*"([^"]+)"',
+                                    # Pattern 6: Match code even if JSON structure is broken (last resort)
+                                    r'code["\']?\s*:\s*["\']([^"\']+)["\']',
                                 ]
                                 for pattern in patterns:
                                     match = re.search(pattern, raw_output, re.DOTALL)
@@ -352,15 +364,43 @@ class SimpleCodeExecutionTool(BaseTool):
             # Unescape newlines if needed
             code = code.replace('\\n', '\n')
             
-            safe_globals = {
-                '__builtins__': __builtins__,
+            # Import shared namespace for variable persistence
+            try:
+                from shared_execution_namespace import get_shared_namespace
+                shared_namespace = get_shared_namespace()
+            except ImportError:
+                # Fallback if shared namespace not available
+                shared_namespace = {}
+            
+            # Start with shared namespace (allows variable persistence)
+            safe_globals = dict(shared_namespace)  # Copy to avoid modifying original
+            safe_globals.update({
                 'json': json,
                 'os': os,
                 'sys': sys,
                 'Path': Path,
-            }
+            })
+            
+            # Also import from shared.load_data if available
+            try:
+                from shared.load_data import train_data, test_data, ground_truth
+                safe_globals['train_data'] = train_data
+                safe_globals['test_data'] = test_data
+                safe_globals['ground_truth'] = ground_truth
+            except ImportError:
+                pass
             
             exec(code, safe_globals)
+            
+            # Update shared namespace with new/modified variables
+            try:
+                from shared_execution_namespace import update_shared_namespace
+                # Only update non-builtin variables
+                updates = {k: v for k, v in safe_globals.items() 
+                          if not k.startswith('__') and k not in ['json', 'os', 'sys', 'Path']}
+                update_shared_namespace(updates)
+            except ImportError:
+                pass
             
             if 'result' in safe_globals:
                 result = str(safe_globals['result'])

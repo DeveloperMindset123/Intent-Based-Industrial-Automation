@@ -226,11 +226,17 @@ WORKFLOW:
    - CRITICAL: After load_dataset, the data is available as global variables in shared.load_data module
    - Use: from shared.load_data import train_data, test_data, ground_truth
    - DO NOT try to read CSV files directly - use the imported variables
-   - For RUL prediction: Use train_data to make predictions, then verify with ground_truth
+   - CRITICAL: DO NOT use predict_rul tool or set_model_id with 'rul_prediction_model' - these don't work. Instead:
+     * For RUL prediction: Use execute_code_simple or execute_python_code to create predictions directly
+     * Example: Use execute_code_simple with code that creates predictions dict from test_data
+     * Variables persist between execute_code_simple calls, so you can build up results incrementally
+   - For RUL prediction: After creating predictions, ALWAYS verify with ground_truth using verify_rul_predictions
 4. Verify results (especially RUL predictions):
-   - If predictions dict is large (>50 engines), use execute_code_simple with code that calls verify_rul_predictions(predictions_dict)
+   - CRITICAL: For RUL tasks, ground truth validation is MANDATORY before finishing
+   - After creating predictions, ALWAYS call verify_rul_predictions(predictions, ground_truth)
+   - If predictions dict is large (>50 engines), use execute_code_simple with code that calls verify_rul_predictions(predictions_dict, ground_truth)
    - Store verification result in a variable and print it
-   - CRITICAL: For RUL tasks, ground truth validation is REQUIRED - use verify_rul_predictions tool or execute_code_simple
+   - DO NOT finish the task until ground truth validation is complete and results are printed
 5. Format output:
    - If data is large, use execute_code_simple with code that calls format_table functions directly
    - Otherwise, use format_table tool
@@ -241,7 +247,7 @@ Thought: [brief reasoning]
 Action: tool_name (NO "Tool:" prefix - use tool name directly, e.g., "Action: quick_data_summary", NOT "Action: Tool: quick_data_summary")
 Action Input: JSON format. 
 - For execute_python_code: CRITICAL - MUST use SINGLE-LINE JSON with escaped newlines (\\n) - NEVER use literal newlines. 
-- For execute_code_simple: Use JSON with code key containing your Python code - simpler alternative that avoids JSON parsing issues. ALWAYS store results in variables and print them.
+- For execute_code_simple: Use JSON with code key containing your Python code - simpler alternative that avoids JSON parsing issues. ALWAYS store results in variables and print them. Variables persist between calls, so you can build up results incrementally.
 - For verify_rul_predictions: Only use if predictions dict is small (<50 engines). For large dicts, use execute_code_simple instead.
 - For format_table: Only use if data list is small (<50 items). For large lists, use execute_code_simple instead.
 - For tools without parameters: Use empty JSON object.

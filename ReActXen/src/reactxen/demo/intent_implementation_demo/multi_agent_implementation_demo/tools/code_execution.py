@@ -390,15 +390,43 @@ If this error persists, try breaking the code into smaller execute_python_code c
             return f"ERROR: 'code' must be a string, but received {type(code).__name__}."
         
         try:
-            safe_globals = {
-                '__builtins__': __builtins__,
+            # Import shared namespace for variable persistence
+            try:
+                from shared_execution_namespace import get_shared_namespace
+                shared_namespace = get_shared_namespace()
+            except ImportError:
+                # Fallback if shared namespace not available
+                shared_namespace = {}
+            
+            # Start with shared namespace (allows variable persistence)
+            safe_globals = dict(shared_namespace)  # Copy to avoid modifying original
+            safe_globals.update({
                 'json': json,
                 'os': os,
                 'sys': sys,
                 'Path': Path,
-            }
+            })
+            
+            # Also import from shared.load_data if available
+            try:
+                from shared.load_data import train_data, test_data, ground_truth
+                safe_globals['train_data'] = train_data
+                safe_globals['test_data'] = test_data
+                safe_globals['ground_truth'] = ground_truth
+            except ImportError:
+                pass
             
             exec(code, safe_globals)
+            
+            # Update shared namespace with new/modified variables
+            try:
+                from shared_execution_namespace import update_shared_namespace
+                # Only update non-builtin variables
+                updates = {k: v for k, v in safe_globals.items() 
+                          if not k.startswith('__') and k not in ['json', 'os', 'sys', 'Path']}
+                update_shared_namespace(updates)
+            except ImportError:
+                pass
             
             if return_result and 'result' in safe_globals:
                 result = str(safe_globals['result'])

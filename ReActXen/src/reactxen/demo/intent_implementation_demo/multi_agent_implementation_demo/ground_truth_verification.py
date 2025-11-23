@@ -195,7 +195,7 @@ class VerifyRULPredictionsTool(BaseTool):
         
         # Convert string keys to int
         try:
-            predictions_int = {int(k): int(v) for k, v in predictions.items()}
+        predictions_int = {int(k): int(v) for k, v in predictions.items()}
         except (ValueError, TypeError) as e:
             return f"❌ Error converting predictions: {str(e)}. Input: {str(predictions)[:200]}"
         
