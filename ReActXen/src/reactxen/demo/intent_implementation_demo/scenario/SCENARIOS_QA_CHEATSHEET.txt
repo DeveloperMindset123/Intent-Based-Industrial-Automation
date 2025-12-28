@@ -1,0 +1,1160 @@
+================================================================================
+                    MY_SCENARIOS.JSON - Q&A CHEATSHEET
+        Using Feynman Technique + Root Cause Analysis for Simple Explanations
+================================================================================
+
+TABLE OF CONTENTS
+=================
+1. HIGH-LEVEL OVERVIEW QUESTIONS
+2. SCENARIO STRUCTURE QUESTIONS
+3. GROUND TRUTH & VALIDATION QUESTIONS
+4. DATASET ASSIGNMENT QUESTIONS
+5. TASK CLASSIFICATION QUESTIONS
+6. EVALUATION METRICS QUESTIONS
+7. FUZZY DESCRIPTION QUESTIONS
+8. DEPENDENCY & COMPLEXITY QUESTIONS
+9. IMPLEMENTATION QUESTIONS
+10. SME VALIDATION QUESTIONS
+
+================================================================================
+SECTION 1: HIGH-LEVEL OVERVIEW QUESTIONS
+================================================================================
+
+Q1.1: What is my_scenarios.json?
+ROOT CAUSE: Why does this file exist?
+SIMPLE ANSWER:
+    - It's a collection of 75 real-world industrial maintenance tasks
+    - Each task represents something a maintenance engineer would actually do
+    - Think of it like a test bank for AI systems that do predictive maintenance
+    - Example: "Find which turbine engines will fail soon"
+
+Q1.2: How many scenarios are there and why that number?
+ROOT CAUSE: Why 75 scenarios specifically?
+SIMPLE ANSWER:
+    - 75 total scenarios covering different industrial tasks
+    - Breakdown:
+        * 15 RUL Prediction (predict when equipment fails)
+        * 15 Fault Classification (identify what's broken)
+        * 5 Cost-Benefit Analysis (should we fix it now or later?)
+        * 10 Safety/Policy Evaluation (is it safe? does it comply?)
+        * 30 Engine Health Analysis (specialized engine questions)
+    - This diversity ensures we test AI across ALL maintenance activities
+    - Not just prediction, but decision-making too
+
+Q1.3: What makes these scenarios "expert-vetted"?
+ROOT CAUSE: Why do we need expert validation?
+SIMPLE ANSWER:
+    - Real industrial maintenance experts (SMEs) reviewed each scenario
+    - They confirmed: "Yes, this is how we actually work"
+    - Without SMEs: Scenarios might be technically correct but impractical
+    - With SMEs: Scenarios match real factory floor decisions
+    - Example: SMEs told us MAE/RMSE should apply to ALL units, not just top N
+
+================================================================================
+SECTION 2: SCENARIO STRUCTURE QUESTIONS
+================================================================================
+
+Q2.1: What are the main fields in each scenario?
+ROOT CAUSE: What information defines a scenario?
+SIMPLE ANSWER:
+    Essential Fields (Every scenario has these):
+    1. task_id: Unique identifier (e.g., "pdm_rul_001")
+    2. classification_type: What kind of task (RUL, Fault, Cost, Safety)
+    3. dataset: Which industrial equipment data to use (CMAPSS, CWRU, etc.)
+    4. fuzzy_description: Natural language task description
+    5. ground_truth: The correct answer + how to validate it
+    6. dependency_analysis: What tools/knowledge are needed
+    7. complexity_rating: How hard is this task (1-10)
+
+Q2.2: Why is task_id structured like "pdm_rul_001"?
+ROOT CAUSE: Why this naming convention?
+SIMPLE ANSWER:
+    - pdm = Predictive Maintenance
+    - rul/fault/cost/safety = Task type
+    - 001 = Sequential number
+    - Benefits:
+        * Easy to find scenarios by type
+        * Easy to reference in code
+        * Clear organization in discussions
+    - Example: "pdm_rul_001" = First RUL prediction scenario
+
+Q2.3: What does complexity_rating mean?
+ROOT CAUSE: How do we measure task difficulty?
+SIMPLE ANSWER:
+    Scale: 1-10 (1 = easiest, 10 = hardest)
+
+    Factors that increase complexity:
+    - Multiple datasets needed
+    - Multiple tools required
+    - Multi-step reasoning
+    - Domain-specific knowledge
+    - Ambiguous requirements
+
+    Example Ratings:
+    - 3-4: Simple prediction task, one dataset, clear goal
+    - 6-7: Requires data fusion, multiple tools, cost analysis
+    - 8-9: Multi-agent coordination, policy compliance, safety analysis
+
+================================================================================
+SECTION 3: GROUND TRUTH & VALIDATION QUESTIONS
+================================================================================
+
+Q3.1: What is ground_truth and why do we need it?
+ROOT CAUSE: How do we know if the AI got it right?
+SIMPLE ANSWER:
+    - Ground truth = The correct answer we know from real data
+    - Without it: We can't evaluate if AI predictions are good
+    - With it: We can measure accuracy objectively
+
+    Example:
+        Task: "Find top 10 engines that will fail soon"
+        Ground Truth: [34, 31, 68, 81, 82, 42, 76, 35, 66, 56]
+        (These engines actually DID fail first in real data)
+
+Q3.2: What is sample_correct_units?
+ROOT CAUSE: What's the right answer for this scenario?
+SIMPLE ANSWER:
+    - List of equipment IDs that are the correct answer
+    - For RUL: Units with lowest remaining life (will fail soon)
+    - For Fault: Representative units showing different fault types
+
+    Real Example (pdm_rul_001):
+        sample_correct_units: [34, 31, 68, 81, 82, 42, 76, 35, 66, 56]
+        Meaning: These 10 turbine engines will fail soonest
+
+    NOT placeholder values like [0, 1, 2, 3, 4]!
+
+Q3.3: Why are MAE and RMSE ranges provided?
+ROOT CAUSE: How accurate should predictions be?
+SIMPLE ANSWER:
+    MAE (Mean Absolute Error) = Average prediction error
+    RMSE (Root Mean Squared Error) = Error with penalty for big mistakes
+
+    Example from CMAPSS_FD001:
+        MAE range: [12.5, 25.1]
+        Meaning: On average, predictions are off by 12-25 cycles
+
+        RMSE range: [16.7, 33.4]
+        Meaning: With penalty for outliers, error is 16-33 cycles
+
+    Why ranges? Different models perform differently, but should be in range
+
+    CRITICAL: These are calculated across ALL test units, not just top N
+
+Q3.4: What does expected_top_units_count mean?
+ROOT CAUSE: How many answers should the AI provide?
+SIMPLE ANSWER:
+    - Number of equipment units the AI should return
+    - Usually 10 for top-N tasks
+    - Must match length of sample_correct_units
+
+    Example:
+        expected_top_units_count: 10
+        sample_correct_units: [34, 31, 68, ..., 56]  # Must have 10 items
+
+    Mismatch = Error (SME feedback caught these)
+
+Q3.5: What are required_fields in ground_truth?
+ROOT CAUSE: What output format do we expect from the AI?
+SIMPLE ANSWER:
+    - List of fields the AI MUST provide in its answer
+    - Ensures consistent, comparable results
+
+    For RUL tasks:
+        ["all_unit_predictions", "top_N_risk_units", "overall_mae",
+         "overall_rmse", "ground_truth_verification_status"]
+
+    For Fault Classification:
+        ["classifications", "overall_accuracy", "confusion_matrix",
+         "per_fault_type_metrics"]
+
+    Missing any field = Incomplete answer
+
+Q3.6: What is output_template?
+ROOT CAUSE: What exact format should the AI's output have?
+SIMPLE ANSWER:
+    - Shows the exact JSON structure expected
+    - Each field has its data type specified
+
+    Example:
+        {
+            "top_N_risk_units": "array of 10 unit IDs (int)",
+            "overall_mae": "float",
+            "ground_truth_verification_status": "bool"
+        }
+
+    Helps AI know: "Return a list of 10 integers here, a float there"
+
+================================================================================
+SECTION 4: DATASET ASSIGNMENT QUESTIONS
+================================================================================
+
+Q4.1: Why do different scenarios use different datasets?
+ROOT CAUSE: Why not use one dataset for everything?
+SIMPLE ANSWER:
+    Different equipment types need different data:
+
+    - CMAPSS (FD001-FD004): Aircraft turbine engines
+    - CWRU: Bearing faults in motors
+    - FEMTO: Bearing degradation over time
+    - IMS: High-frequency bearing data
+    - ElectricMotorVibrations: Electric motor faults
+
+    Each dataset captures different:
+        * Equipment types (engines, bearings, gearboxes)
+        * Sensor types (vibration, temperature, pressure)
+        * Fault modes (wear, cracks, imbalance)
+
+    Real factories have diverse equipment → need diverse datasets
+
+Q4.2: How do you know which dataset to use for each scenario?
+ROOT CAUSE: What's the matching logic?
+SIMPLE ANSWER:
+    Match by task type + data availability:
+
+    RUL Prediction → MUST have actual RUL ground truth
+        ✓ CMAPSS (has RUL_FD001.txt files)
+        ✓ FEMTO (has rul_percentage column)
+        ✗ CWRU (only has fault labels, not RUL)
+
+    Fault Classification → MUST have fault type labels
+        ✓ CWRU (has labels: 0=normal, 1=inner, 2=outer, 3=ball)
+        ✓ IMS (has fault_type column)
+        ✗ CMAPSS (designed for RUL, not fault classification)
+
+    We fixed mismatches: pdm_rul_002 was using CWRU (wrong!) → changed to CMAPSS
+
+Q4.3: What's the distribution of datasets across scenarios?
+ROOT CAUSE: Are we testing diverse enough equipment?
+SIMPLE ANSWER:
+    75 scenarios across 18 datasets:
+
+    RUL Prediction (20 scenarios):
+        - CMAPSS_FD001: 6 scenarios
+        - FEMTO: 6 scenarios
+        - CMAPSS_FD002: 3 scenarios
+        - CMAPSS_FD004: 3 scenarios
+        - CMAPSS_FD003: 2 scenarios
+
+    Fault Classification (24 scenarios):
+        - CWRU: 4 scenarios
+        - ElectricMotorVibrations: 3 scenarios
+        - XJTU: 3 scenarios
+        - Others: 2 each (Paderborn, HUST, MFPT, Mendeley, etc.)
+
+    Other Tasks (31 scenarios):
+        - EngineMTQA: 30 scenarios (engine health Q&A)
+        - Azure: 1 scenario
+
+    Coverage: Bearings, motors, gearboxes, engines, planetary systems
+
+Q4.4: What happens if we use the wrong dataset?
+ROOT CAUSE: Why is dataset-task matching critical?
+SIMPLE ANSWER:
+    Example of what went wrong:
+
+    BEFORE (Wrong):
+        Task: "Predict RUL for bearings" (pdm_rul_002)
+        Dataset: CWRU
+        Problem: CWRU only has fault labels [0,1,2,3], NOT RUL values
+        Result: sample_correct_units = [0,1,2,3,4] (just indices, meaningless!)
+
+    AFTER (Fixed):
+        Task: "Predict RUL for bearings"
+        Dataset: CMAPSS_FD002
+        Solution: CMAPSS has actual RUL values
+        Result: sample_correct_units = [6,10,43,176,210] (real RUL rankings!)
+
+    Wrong dataset = Invalid ground truth = Can't evaluate AI
+
+================================================================================
+SECTION 5: TASK CLASSIFICATION QUESTIONS
+================================================================================
+
+Q5.1: What are the different classification_types?
+ROOT CAUSE: What kinds of tasks do maintenance engineers do?
+SIMPLE ANSWER:
+    5 main types:
+
+    1. RUL Prediction (15 scenarios)
+       - Question: "When will this equipment fail?"
+       - Example: "Find top 10 turbines that will fail soon"
+       - Real use: Schedule maintenance before failures
+
+    2. Fault Classification (15 scenarios)
+       - Question: "What type of fault is this?"
+       - Example: "Is this bearing fault inner race, outer race, or ball?"
+       - Real use: Order correct replacement parts
+
+    3. Cost-Benefit Analysis (5 scenarios)
+       - Question: "Is it cheaper to fix now or wait?"
+       - Example: "Should we do preventive maintenance or risk failure?"
+       - Real use: Budget allocation decisions
+
+    4. Safety/Policy Evaluation (10 scenarios)
+       - Question: "Is this safe? Does it comply with regulations?"
+       - Example: "Does this engine meet FAA safety requirements?"
+       - Real use: Regulatory compliance, worker safety
+
+    5. Engine Health Analysis (30 scenarios)
+       - Question: "What's the overall health status?"
+       - Example: "Is the high-pressure compressor degrading?"
+       - Real use: Comprehensive health assessment
+
+Q5.2: Why do we separate RUL Prediction from Fault Classification?
+ROOT CAUSE: Aren't they both about predicting failures?
+SIMPLE ANSWER:
+    Different questions, different answers:
+
+    RUL Prediction:
+        Question: "WHEN will it fail?"
+        Answer: Time/cycles remaining (e.g., 47 cycles left)
+        Data needed: Degradation over time
+        Model: Regression (continuous values)
+
+    Fault Classification:
+        Question: "WHAT is broken?"
+        Answer: Fault type (e.g., "inner race crack")
+        Data needed: Fault signatures
+        Model: Classification (discrete categories)
+
+    Real scenario: You need BOTH
+        1. Classify: "It's an inner race fault" (order correct part)
+        2. Predict: "It will fail in 30 cycles" (schedule maintenance)
+
+Q5.3: What makes Cost-Benefit Analysis different?
+ROOT CAUSE: Why not just always fix everything immediately?
+SIMPLE ANSWER:
+    Resource constraints make timing critical:
+
+    Scenario: Bearing showing early wear
+
+    Option A - Fix Now (Preventive):
+        - Cost: $5,000 maintenance
+        - Downtime: 2 hours scheduled
+        - Risk: Minimal
+
+    Option B - Wait (Reactive):
+        - Cost: $50,000 if it fails (damaged equipment + emergency response)
+        - Downtime: 24+ hours unplanned
+        - Risk: Production loss, safety hazard
+
+    AI must calculate:
+        - Failure probability
+        - Expected costs
+        - Optimal maintenance threshold
+
+    Not just "will it fail?" but "when should we act?"
+
+Q5.4: What's unique about Safety/Policy scenarios?
+ROOT CAUSE: Why are these separate from other predictions?
+SIMPLE ANSWER:
+    Legal and safety requirements override cost optimization:
+
+    Normal RUL task:
+        "Find units likely to fail" → Optimize costs
+
+    Safety/Policy task:
+        "Find units that violate FAA regulations" → MUST be addressed
+
+    Key differences:
+        - Binary decision (compliant/non-compliant)
+        - No cost tradeoff allowed
+        - Regulatory thresholds are hard limits
+        - Documentation required for audits
+
+    Example:
+        Turbine vibration exceeds ISO 10816 limit
+        → MUST shut down, regardless of RUL or cost
+        → Safety first
+
+================================================================================
+SECTION 6: EVALUATION METRICS QUESTIONS
+================================================================================
+
+Q6.1: How do you evaluate if an AI agent succeeded?
+ROOT CAUSE: What makes a "good" answer?
+SIMPLE ANSWER:
+    Two-part evaluation:
+
+    Part 1 - Correctness (Did it get the right answer?)
+        - Compare AI output to ground truth
+        - For RUL: Check MAE, RMSE within acceptable range
+        - For Classification: Check accuracy, F1 score
+        - For Cost: Check if savings calculated correctly
+
+    Part 2 - Completeness (Did it provide everything required?)
+        - Check all required_fields are present
+        - Check output matches output_template format
+        - Check ground_truth_verification was performed
+
+    Both must pass to succeed
+
+Q6.2: What does MAE tell you that RMSE doesn't?
+ROOT CAUSE: Why measure error two ways?
+SIMPLE ANSWER:
+    MAE (Mean Absolute Error):
+        - Average distance from correct answer
+        - Treats all errors equally
+        - Example: Errors of [5, 5, 5] → MAE = 5
+        - Good for: Understanding typical error
+
+    RMSE (Root Mean Squared Error):
+        - Penalizes large errors more heavily
+        - Squares errors before averaging
+        - Example: Errors of [5, 5, 5] → RMSE = 5
+                  Errors of [1, 1, 13] → MAE = 5, but RMSE = 7.6
+        - Good for: Catching dangerous outliers
+
+    In maintenance:
+        - Small MAE = Generally accurate
+        - Large RMSE = Has some very wrong predictions (risky!)
+        - You want BOTH to be low
+
+Q6.3: What's the difference between accuracy and F1 score?
+ROOT CAUSE: Why not just use accuracy?
+SIMPLE ANSWER:
+    Accuracy can be misleading with imbalanced data:
+
+    Example: 100 bearings, 95 normal, 5 faulty
+
+    Dumb model that always says "normal":
+        Accuracy = 95% (seems great!)
+        But: Missed ALL 5 failures (disaster!)
+
+    F1 Score balances:
+        - Precision: Of predicted faults, how many were real?
+        - Recall: Of real faults, how many did we catch?
+
+    Same dumb model:
+        F1 Score = 0% (correctly shows it's useless for faults)
+
+    For safety: F1 > Accuracy (missing a fault is expensive/dangerous)
+
+Q6.4: What does ground_truth_verification_status mean?
+ROOT CAUSE: How do we know ground truth is correct?
+SIMPLE ANSWER:
+    It's a verification step that confirms:
+
+    1. Ground truth data exists
+    2. Ground truth data is accessible
+    3. Ground truth matches expected format
+    4. Agent's predictions can be compared to ground truth
+
+    Example verification checks:
+        ✓ RUL_FD001.txt file exists
+        ✓ File has 100 lines (100 test units)
+        ✓ All values are numeric
+        ✓ Agent's predicted units are valid IDs (0-99)
+
+    Status = True → Safe to evaluate
+    Status = False → Cannot trust evaluation
+
+================================================================================
+SECTION 7: FUZZY DESCRIPTION QUESTIONS
+================================================================================
+
+Q7.1: What is fuzzy_description and why "fuzzy"?
+ROOT CAUSE: Why not just give precise instructions?
+SIMPLE ANSWER:
+    Real-world tasks are described in natural language, not code:
+
+    Precise (technical):
+        "Train LSTM model on CMAPSS FD001, predict RUL for test set,
+         return top 10 units with lowest predicted RUL"
+
+    Fuzzy (how humans actually talk):
+        "We need to identify which turbine engines are most likely to
+         fail soon. Look at the degradation patterns and tell me the top 10
+         at-risk units that need immediate attention."
+
+    Why fuzzy?
+        - Tests if AI can understand ambiguous requests
+        - Mirrors real factory floor communication
+        - Requires AI to infer intent, not just follow commands
+        - More realistic evaluation
+
+Q7.2: What makes a good fuzzy description?
+ROOT CAUSE: What information must be included?
+SIMPLE ANSWER:
+    Must include (implicitly or explicitly):
+
+    1. The Goal:
+       "Identify engines that will fail soon"
+
+    2. The Context:
+       "We have sensor data from 100 turbines"
+
+    3. The Output Needed:
+       "Top 10 at-risk units"
+
+    4. The Constraints:
+       "Use historical degradation patterns"
+       "We need this for tomorrow's maintenance planning"
+
+    5. Why It Matters:
+       "To prevent unexpected failures during flight"
+
+    Good: Natural language that maintenance engineers would actually use
+    Bad: Pseudo-code or overly technical jargon
+
+Q7.3: Why can't fuzzy descriptions have contractions?
+ROOT CAUSE: Why did SMEs flag "I'm", "We've", etc.?
+SIMPLE ANSWER:
+    Professional consistency and clarity:
+
+    Before (with contractions):
+        "We've noticed some bearings aren't performing well.
+         I'm concerned they'll fail soon."
+
+    After (formal):
+        "We have noticed some bearings are not performing well.
+         I am concerned they will fail soon."
+
+    Reasons:
+        - Professional documentation standards
+        - Easier for non-native English speakers
+        - Clearer for AI parsing
+        - Matches formal engineering reports
+        - Consistent tone across all 75 scenarios
+
+Q7.4: How specific should fuzzy descriptions be about metrics?
+ROOT CAUSE: Should we mention MAE, RMSE explicitly?
+SIMPLE ANSWER:
+    General guidance, NOT specific numbers:
+
+    Good (appropriate specificity):
+        "Predict when each turbine will fail. Your predictions should
+         be reasonably accurate - within industry-standard error margins."
+
+    Too Vague:
+        "Do some predictions."
+
+    Too Specific:
+        "Achieve MAE between 12.5 and 25.1 cycles with RMSE below 33.4"
+        (This gives away the ground truth!)
+
+    Rule: Describe the task naturally; ground_truth handles evaluation
+
+================================================================================
+SECTION 8: DEPENDENCY & COMPLEXITY QUESTIONS
+================================================================================
+
+Q8.1: What is dependency_analysis?
+ROOT CAUSE: What does the AI need to complete this task?
+SIMPLE ANSWER:
+    Lists everything required:
+
+    1. Required Tools:
+       - load_data: Load the dataset
+       - train_model: Build prediction model
+       - evaluate: Calculate accuracy metrics
+       - visualize: Create plots
+
+    2. Required Knowledge:
+       - Domain: Turbine degradation patterns
+       - Technical: LSTM neural networks
+       - Industry: Aviation maintenance standards
+
+    3. External Dependencies:
+       - Access to CMAPSS dataset
+       - Computing resources for model training
+       - Ground truth RUL values for validation
+
+    Example:
+        Simple task (complexity 3): Only needs load_data, basic_stats
+        Complex task (complexity 8): Needs 5+ tools, domain expertise,
+                                     multi-step reasoning
+
+Q8.2: How is complexity_rating determined?
+ROOT CAUSE: What makes one scenario harder than another?
+SIMPLE ANSWER:
+    Multiple factors contribute:
+
+    Low Complexity (3-4):
+        - Single dataset
+        - 1-2 tools needed
+        - Clear, unambiguous goal
+        - Direct comparison to ground truth
+        Example: "Load data, calculate average RUL"
+
+    Medium Complexity (5-6):
+        - Multiple tools needed
+        - Requires model training
+        - Some domain knowledge
+        Example: "Train model, predict RUL, validate accuracy"
+
+    High Complexity (7-8):
+        - Multi-step workflow
+        - Tool orchestration required
+        - Domain expertise needed
+        - Cost-benefit calculations
+        Example: "Predict RUL, calculate maintenance costs,
+                  recommend optimal schedule"
+
+    Very High Complexity (9-10):
+        - Multiple datasets/agents
+        - Policy compliance checking
+        - Safety analysis
+        - Justification required
+        Example: "Assess engine health, check FAA compliance,
+                  recommend actions with cost-benefit justification"
+
+Q8.3: Why list required_tools?
+ROOT CAUSE: Can't the AI just figure out what tools to use?
+SIMPLE ANSWER:
+    Provides baseline expectations:
+
+    Without tool list:
+        AI might use inefficient approaches
+        Example: Manually parsing CSV instead of using load_data tool
+
+    With tool list:
+        AI knows what's available and expected
+        Can validate if it's using appropriate tools
+
+    Also helps evaluation:
+        - Did AI use the right tools?
+        - Did AI create new tools when needed?
+        - Did AI skip essential steps?
+
+    Think of it like a recipe listing "required equipment"
+
+Q8.4: What if the AI needs a tool not in required_tools?
+ROOT CAUSE: Is the list comprehensive or just minimum requirements?
+SIMPLE ANSWER:
+    Two types of tools:
+
+    1. Required (must use):
+       - Listed in dependency_analysis
+       - Essential for task completion
+       - Example: load_data, validate_predictions
+
+    2. Optional (may create/use):
+       - Not listed, but helpful
+       - AI can create dynamically
+       - Example: specialized visualization tool,
+                  custom preprocessing function
+
+    Evaluation:
+        ✓ Used all required tools
+        ✓ Created helpful additional tools
+        ✗ Skipped required tools
+        ✗ Created unnecessary tools (overcomplicated)
+
+================================================================================
+SECTION 9: IMPLEMENTATION QUESTIONS
+================================================================================
+
+Q9.1: How does an AI agent actually use these scenarios?
+ROOT CAUSE: What's the execution flow?
+SIMPLE ANSWER:
+    Step-by-step process:
+
+    1. Read Scenario:
+       - Parse task_id, classification_type, fuzzy_description
+       - Understand what's being asked
+
+    2. Load Data:
+       - Access dataset specified (e.g., CMAPSS_FD001)
+       - Load training and test data
+
+    3. Execute Task:
+       - Use required_tools
+       - Create additional tools if needed
+       - Generate predictions/analysis
+
+    4. Format Output:
+       - Match output_template structure
+       - Include all required_fields
+
+    5. Validate:
+       - Compare to ground_truth
+       - Calculate metrics (MAE, RMSE, accuracy)
+       - Set ground_truth_verification_status
+
+    6. Report:
+       - Return structured JSON response
+       - Include verification status
+
+Q9.2: What happens if the AI's output doesn't match output_template?
+ROOT CAUSE: How strict is format checking?
+SIMPLE ANSWER:
+    Strict validation with specific error handling:
+
+    Example Mismatch:
+        Expected: {"top_N_risk_units": [1, 2, 3, ...]}
+        Got: {"at_risk_units": [1, 2, 3, ...]}
+
+    Result: FAILURE - field name doesn't match
+
+    Another Example:
+        Expected: {"overall_mae": "float"}
+        Got: {"overall_mae": "12.5 cycles"}
+
+    Result: FAILURE - wrong data type (string vs float)
+
+    Why strict?
+        - Ensures consistent evaluation
+        - Prevents ambiguous results
+        - Enables automated processing
+        - Matches real API contract requirements
+
+Q9.3: Can scenarios be run in parallel?
+ROOT CAUSE: Do scenarios depend on each other?
+SIMPLE ANSWER:
+    Fully independent - can run in any order:
+
+    Each scenario is self-contained:
+        ✓ Has its own dataset
+        ✓ Has its own ground truth
+        ✓ Has its own evaluation criteria
+        ✗ No dependencies on other scenarios
+
+    This enables:
+        - Parallel execution (faster evaluation)
+        - Random sampling for quick tests
+        - Incremental evaluation (test one at a time)
+        - Easy debugging (isolate single scenario)
+
+    Example:
+        Can run pdm_rul_001, pdm_fault_010, pdm_cost_003 simultaneously
+        No conflicts, no shared state
+
+Q9.4: How are multi-agent scenarios different?
+ROOT CAUSE: When do you need multiple AI agents?
+SIMPLE ANSWER:
+    Some tasks need specialized expertise:
+
+    Single-Agent Task (Simple):
+        "Predict RUL for bearings"
+        → RUL Prediction Agent handles it alone
+
+    Multi-Agent Task (Complex):
+        "Assess engine health, determine maintenance timing,
+         calculate costs, check safety compliance"
+
+        → Needs coordination:
+           - Health Assessment Agent (analyze degradation)
+           - RUL Prediction Agent (forecast failures)
+           - Cost-Benefit Agent (optimize timing)
+           - Safety Agent (check compliance)
+           - Coordinator Agent (orchestrate everything)
+
+    Scenarios mark this with complexity 8-10
+
+================================================================================
+SECTION 10: SME VALIDATION QUESTIONS
+================================================================================
+
+Q10.1: What did SME (Subject Matter Expert) review accomplish?
+ROOT CAUSE: Why couldn't you create scenarios without experts?
+SIMPLE ANSWER:
+    Technical accuracy ≠ Practical relevance
+
+    What engineers know that we don't:
+        - Actual maintenance workflows
+        - Real decision-making criteria
+        - Industry-standard tolerances
+        - Common pitfalls and edge cases
+        - Regulatory requirements
+
+    Example SME corrections:
+
+        Before SME: "MAE for top 10 units should be < 15"
+        SME feedback: "MAE should be for ALL test units, not just top 10.
+                       That's how we actually evaluate predictions."
+        After: "MAE range [12.5, 25.1] calculated across all 100 test units"
+
+        Impact: Changed evaluation from wrong to industry-standard
+
+Q10.2: What were the main SME feedback categories?
+ROOT CAUSE: What did SMEs most commonly correct?
+SIMPLE ANSWER:
+    5 main categories of feedback:
+
+    1. Formatting Issues:
+       - Remove Unicode characters (→ becomes ->)
+       - Remove contractions (I'm → I am)
+       - Professional tone consistency
+
+    2. Technical Accuracy:
+       - MAE/RMSE apply to ALL units, not top N
+       - expected_top_units_count must match sample_correct_units length
+       - Correct fault type names (not generic labels)
+
+    3. Practical Relevance:
+       - Scenarios must match real workflows
+       - Timeframes must be realistic
+       - Resources must be available
+
+    4. Data Validation:
+       - Use actual ground truth, not placeholders
+       - Verify data sources are accessible
+       - Confirm dataset-task compatibility
+
+    5. Completeness:
+       - Add output_template for clarity
+       - Include rationale for metric ranges
+       - Specify verification requirements
+
+Q10.3: How did you incorporate SME feedback?
+ROOT CAUSE: What changed after SME review?
+SIMPLE ANSWER:
+    Systematic updates across all 75 scenarios:
+
+    Automated fixes (via extract_ground_truth.py):
+        - Removed all contractions (10 scenarios affected)
+        - Fixed expected_top_units_count mismatches (14 scenarios)
+        - Updated MAE/RMSE rationales (75 scenarios)
+        - Extracted actual ground truth from datasets (75 scenarios)
+
+    Manual fixes (via fix_scenarios.py):
+        - Corrected dataset assignments (RUL vs Fault classification)
+        - Reassigned incompatible dataset-task pairs
+        - Updated sample_correct_units with real data
+
+    Validation:
+        - All changes logged with before/after values
+        - 316 total changes documented
+        - Every scenario re-verified post-changes
+
+Q10.4: How do you know the scenarios are now correct?
+ROOT CAUSE: What validation was performed?
+SIMPLE ANSWER:
+    Multi-layer validation:
+
+    Layer 1 - Automated Checks:
+        ✓ All JSON syntax valid
+        ✓ All required fields present
+        ✓ Data types match specifications
+        ✓ Array lengths consistent
+
+    Layer 2 - Data Verification:
+        ✓ Ground truth extracted from actual datasets
+        ✓ sample_correct_units contain valid IDs
+        ✓ MAE/RMSE ranges match dataset characteristics
+        ✓ Dataset files exist and are accessible
+
+    Layer 3 - Logical Consistency:
+        ✓ Dataset supports classification_type
+        ✓ required_tools match task complexity
+        ✓ output_template matches required_fields
+
+    Layer 4 - SME Approval:
+        ✓ All SME feedback addressed
+        ✓ Scenarios match real-world workflows
+        ✓ Professional formatting maintained
+
+================================================================================
+SECTION 11: COMMON PITFALLS & TROUBLESHOOTING
+================================================================================
+
+Q11.1: What are common mistakes when using these scenarios?
+ROOT CAUSE: What goes wrong most often?
+SIMPLE ANSWER:
+
+    Mistake 1: Using placeholder ground truth
+        Wrong: Thinking [0, 1, 2, 3, 4] is actual data
+        Right: These are real unit IDs from the dataset
+        Fix: Always extract from actual dataset files
+
+    Mistake 2: Wrong dataset for task type
+        Wrong: Using CWRU (fault classification) for RUL prediction
+        Right: Match dataset capabilities to task requirements
+        Fix: Check dataset has required ground truth type
+
+    Mistake 3: Ignoring output_template
+        Wrong: Returning data in any format
+        Right: Exact field names and data types as specified
+        Fix: Validate output against template before submitting
+
+    Mistake 4: MAE/RMSE for subset
+        Wrong: Calculating metrics only for top N units
+        Right: Calculate across ALL test units
+        Fix: Use complete test set, not just top predictions
+
+    Mistake 5: Skipping ground_truth_verification
+        Wrong: Assuming ground truth is valid
+        Right: Verify accessibility and format
+        Fix: Check files exist and are readable before evaluation
+
+Q11.2: How do you debug a failing scenario?
+ROOT CAUSE: Where to start when something goes wrong?
+SIMPLE ANSWER:
+
+    Step 1: Check Data Access
+        - Can you load the dataset?
+        - Does the file exist at expected path?
+        - Are file permissions correct?
+        Command: Check DATA_DIR in scenario
+
+    Step 2: Verify Ground Truth
+        - Does ground_truth have sample_correct_units?
+        - Do the unit IDs exist in dataset?
+        - Is expected_top_units_count correct?
+        Command: Print len(sample_correct_units)
+
+    Step 3: Validate Output Format
+        - Does output match output_template?
+        - Are all required_fields present?
+        - Are data types correct?
+        Command: Compare dict.keys() to required_fields
+
+    Step 4: Check Calculations
+        - Is MAE calculated correctly?
+        - Is RMSE formula right?
+        - Are you using ALL test units?
+        Command: Print intermediate calculation steps
+
+    Step 5: Review Logs
+        - What tools were called?
+        - What errors occurred?
+        - What was the agent's reasoning?
+        Command: Check execution logs/trajectories
+
+Q11.3: What if ground truth seems wrong?
+ROOT CAUSE: How to verify if ground truth is actually correct?
+SIMPLE ANSWER:
+
+    Verification steps:
+
+    1. Check Source File:
+       - For CMAPSS: RUL_FD001.txt should have ~100 lines
+       - For FEMTO: CSV should have rul_percentage column
+       - For CWRU: CSV should have label column
+
+    2. Verify Extraction:
+       - Re-run extract_ground_truth.py
+       - Check logs for extraction process
+       - Compare before/after values
+
+    3. Manual Spot Check:
+       - Pick a sample_correct_unit ID
+       - Look up actual data for that unit
+       - Confirm it matches expected characteristics
+       Example: Unit 34 in CMAPSS_FD001 should have low RUL
+
+    4. Statistical Validation:
+       - MAE/RMSE ranges should align with literature
+       - Values should be physically plausible
+       - Distribution should match dataset characteristics
+
+    5. Consult SMEs:
+       - Do values match industry experience?
+       - Are thresholds reasonable?
+       - Would this be useful in practice?
+
+================================================================================
+SECTION 12: ADVANCED QUESTIONS
+================================================================================
+
+Q12.1: How do scenarios support transfer learning?
+ROOT CAUSE: Can knowledge from one scenario help with others?
+SIMPLE ANSWER:
+
+    Scenarios are grouped for knowledge transfer:
+
+    Same Classification Type:
+        - All RUL scenarios share prediction techniques
+        - All Fault scenarios share classification approaches
+        - Agent can learn patterns across similar tasks
+
+    Same Dataset:
+        - Multiple scenarios use CMAPSS_FD001
+        - Agent learns dataset characteristics
+        - Preprocessing becomes reusable
+
+    Similar Complexity:
+        - Complexity 3-4 scenarios teach basic workflows
+        - Complexity 7-8 scenarios build on basics
+        - Progressive difficulty enables learning
+
+    Example Transfer:
+        Master pdm_rul_001 (CMAPSS_FD001) →
+        → Easier to solve pdm_rul_004 (CMAPSS_FD001, different goal)
+        → Can transfer to pdm_rul_002 (CMAPSS_FD002, similar dataset)
+
+Q12.2: How do you add new scenarios?
+ROOT CAUSE: What's the process for extending the benchmark?
+SIMPLE ANSWER:
+
+    Step 1: Define Task
+        - Identify real-world maintenance need
+        - Determine classification_type
+        - Set complexity_rating
+
+    Step 2: Select Dataset
+        - Choose dataset that has required ground truth
+        - Verify dataset supports task type
+        - Confirm data accessibility
+
+    Step 3: Extract Ground Truth
+        - Run extraction script on dataset
+        - Verify sample_correct_units are valid
+        - Calculate MAE/RMSE ranges if applicable
+
+    Step 4: Write Scenario
+        - Create fuzzy_description (natural language)
+        - Define required_tools and dependencies
+        - Specify output_template and required_fields
+
+    Step 5: SME Validation
+        - Have maintenance expert review
+        - Incorporate feedback
+        - Verify practical relevance
+
+    Step 6: Test
+        - Run with reference implementation
+        - Verify evaluation works correctly
+        - Document any edge cases
+
+Q12.3: What makes a scenario "expert-vetted" vs just "technically correct"?
+ROOT CAUSE: What's the difference in quality?
+SIMPLE ANSWER:
+
+    Technically Correct Scenario:
+        - JSON is valid
+        - Ground truth exists
+        - Metrics are calculable
+        - Code can execute it
+
+        Example: "Predict RUL with MAE < 20"
+        Problem: Is 20 the right threshold? Says who?
+
+    Expert-Vetted Scenario:
+        - Everything above, PLUS:
+        - Reflects real maintenance workflows
+        - Uses industry-standard metrics
+        - Thresholds match practical experience
+        - Language matches how engineers communicate
+
+        Example: "Predict RUL with MAE in range [12.5, 25.1]
+                  based on historical CMAPSS benchmark performance"
+        Better: SME confirmed this range from actual deployment data
+
+    Key Difference:
+        Technical = Works in lab
+        Expert-vetted = Works in factory
+
+Q12.4: How do scenarios handle data drift?
+ROOT CAUSE: What if real equipment data changes over time?
+SIMPLE ANSWER:
+
+    Current Approach (Static Benchmark):
+        - Scenarios use fixed PDMBench datasets
+        - Ground truth doesn't change
+        - Ensures reproducible evaluation
+        - Good for: Comparing AI models fairly
+
+    Real-World Challenge:
+        - Equipment ages differently
+        - Operating conditions vary
+        - Sensor accuracy degrades
+        - Models need retraining
+
+    Future Extension:
+        - Add "data drift" scenarios
+        - Include temporal validation
+        - Test model robustness to changes
+
+        Example:
+            Scenario A: Train on 2020 data, test on 2020 data
+            Scenario B: Train on 2020 data, test on 2023 data
+            → Measures degradation of model performance
+
+    For Now:
+        Scenarios provide baseline evaluation
+        Assume data distribution is stable
+        Focus on initial model performance
+
+================================================================================
+QUICK REFERENCE CARD
+================================================================================
+
+STRUCTURE HIERARCHY:
+    my_scenarios.json
+    └── pdm_scenarios (array of 75 scenarios)
+        ├── task_id: Unique identifier
+        ├── classification_type: RUL | Fault | Cost | Safety | Engine
+        ├── dataset: Which industrial equipment data
+        ├── fuzzy_description: Natural language task
+        ├── ground_truth:
+        │   ├── sample_correct_units: The right answer
+        │   ├── expected_top_units_count: How many answers
+        │   ├── mae_range / rmse_range: Acceptable error
+        │   ├── required_fields: What output must include
+        │   └── output_template: Exact format expected
+        ├── dependency_analysis:
+        │   ├── required_tools: What tools are needed
+        │   ├── required_knowledge: What expertise needed
+        │   └── external_dependencies: What resources needed
+        └── complexity_rating: 1-10 difficulty scale
+
+KEY NUMBERS:
+    - 75 total scenarios
+    - 18 different datasets
+    - 5 classification types
+    - 15 RUL prediction scenarios
+    - 15 fault classification scenarios
+    - 30 engine health scenarios
+    - 10 safety/policy scenarios
+    - 5 cost-benefit scenarios
+
+DATASETS BY TYPE:
+    RUL Datasets: CMAPSS_FD001-FD004, FEMTO
+    Fault Datasets: CWRU, IMS, XJTU, ElectricMotorVibrations,
+                    Paderborn, HUST, MFPT, Mendeley, GearboxUoC,
+                    PlanetaryPdM, RotorBrokenBar
+    Other: EngineMTQA, Azure
+
+EVALUATION CRITERIA:
+    ✓ Correctness: Matches ground truth within tolerances
+    ✓ Completeness: All required_fields present
+    ✓ Format: Matches output_template exactly
+    ✓ Verification: ground_truth_verification_status = True
+
+COMMON GROUND TRUTH FIELDS:
+    RUL Tasks:
+        - all_unit_predictions
+        - top_N_risk_units
+        - overall_mae
+        - overall_rmse
+        - ground_truth_verification_status
+
+    Fault Tasks:
+        - classifications
+        - overall_accuracy
+        - confusion_matrix
+        - per_fault_type_metrics
+
+    Cost Tasks:
+        - preventive_cost
+        - reactive_cost
+        - optimized_cost
+        - cost_savings
+        - recommended_threshold
+
+COMPLEXITY SCALE:
+    1-3: Simple (single tool, clear goal)
+    4-6: Moderate (multiple tools, model training)
+    7-8: Complex (multi-step, domain knowledge, orchestration)
+    9-10: Very Complex (multi-agent, compliance, safety)
+
+CRITICAL REMINDERS:
+    ⚠ MAE/RMSE calculated on ALL test units, not just top N
+    ⚠ sample_correct_units must be ACTUAL data, not [0,1,2,3,4]
+    ⚠ expected_top_units_count MUST equal len(sample_correct_units)
+    ⚠ Dataset must support classification_type (RUL needs RUL data!)
+    ⚠ No contractions in fuzzy_description (I'm → I am)
+    ⚠ All required_fields must be in output
+    ⚠ Output format must match output_template exactly
+
+================================================================================
+END OF CHEATSHEET
+================================================================================
+Last Updated: 2025-12-27
+Version: 1.0
+Contact: Refer to scenarios_metadata.json for dataset details
+         Refer to acronyms_dictionary.json for term definitions
+================================================================================

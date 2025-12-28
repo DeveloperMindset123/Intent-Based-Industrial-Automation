@@ -5,6 +5,8 @@
   "recent_updates": {
     "date": "2025-12-27",
     "changes": [
+      "Renamed 'fuzzy_description' to 'input_question' - better represents the natural language input the system receives",
+      "Renamed 'task_description' to 'procedure' - clarifies this field describes the step-by-step procedure using available system tools",
       "Corrected dataset assignments: RUL Prediction scenarios now exclusively use RUL-capable datasets (CMAPSS_FD001-FD004, FEMTO)",
       "Reassigned Fault Classification scenarios to use appropriate fault classification datasets (CWRU, IMS, ElectricMotorVibrations, Paderborn, etc.)",
       "Extracted actual ground truth from datasets - replaced all placeholder/estimated values with real data",
@@ -159,18 +161,18 @@
       "real_world_equivalence": "Like having sensor data from your actual plant equipment - vibration, temperature, pressure readings"
     },
 
-    "fuzzy_description": {
-      "what_it_is": "How a real person would actually ask the question - casual, business-focused, sometimes vague",
-      "why_it_matters": "Tests if the system understands natural language requests from non-technical users as well as technical users who uses acronyms during day to day operations.",
+    "input_question": {
+      "what_it_is": "How a real person would actually ask the question - casual, business-focused, the natural language input the system receives",
+      "why_it_matters": "Tests if the system understands natural language requests from non-technical users as well as technical users who use acronyms during day to day operations.",
       "industrial_relevance": "This is how plant managers, operators, and maintenance leads actually communicate - not in technical jargon, and they use acronyms specific to their domain a lot",
-      "example": "'I'm managing a fleet of aircraft engines and need to know which ones are running on fumes' instead of 'Predict RUL for all test units and calculate MAE'"
+      "example": "'Which aircraft engines are running on fumes and need immediate attention?' instead of 'Predict RUL for all test units and calculate MAE'"
     },
 
-    "task_description": {
-      "what_it_is": "Technical, step-by-step specification of exactly what needs to be done",
-      "why_it_matters": "The 'expert' view that defines the precise technical requirements",
-      "industrial_relevance": "Like a detailed maintenance procedure or work instruction - specific, measurable, actionable",
-      "relationship_to_fuzzy": "The system must translate the fuzzy_description (what user wants) into task_description (how to do it)"
+    "procedure": {
+      "what_it_is": "Step-by-step procedure for solving the problem using the tools available in the system",
+      "why_it_matters": "Defines the technical workflow and methodology to address the input question",
+      "industrial_relevance": "Like a detailed maintenance procedure or work instruction - specific, measurable, actionable steps using available system tools",
+      "relationship_to_input": "The system must translate the input_question (what user wants to know) into a procedure (how to solve it using available tools)"
     },
 
     "required_tools": {
@@ -210,7 +212,7 @@
   "sme_review_questions": {
     "feasibility_assessment": [
       "Do these scenarios represent tasks that your operations team actually performs or would perform?",
-      "Are the questions asked in 'fuzzy_description' how your team members would actually phrase requests?",
+      "Are the questions asked in 'input_question' how your team members would actually phrase requests?",
       "Would the outputs (RUL predictions, fault classifications, cost analyses) be useful for your daily operations?",
       "Are the datasets representative of equipment types you work with (bearings, engines, gearboxes, motors)?"
     ],
@@ -230,7 +232,7 @@
       "What scenarios are missing that you encounter regularly?",
       "What aspects of these scenarios don't match your operational reality?",
       "What additional context or constraints should be included?",
-      "How would you modify the 'fuzzy_description' to match how your team actually communicates?"
+      "How would you modify the 'input_question' to match how your team actually communicates?"
     ]
   },
 
@@ -273,7 +275,7 @@
       "actionable": "Would the output lead to a concrete maintenance action?",
       "measurable": "Can success be objectively evaluated (via ground truth)?",
       "representative": "Does it represent common equipment types and failure modes?",
-      "clear": "Is the fuzzy_description understandable to non-technical users?",
+      "clear": "Is the input_question understandable to non-technical users?",
       "complete": "Are all necessary tools and data available to solve it?"
     },
     "ground_truth_validation": {
