@@ -1,0 +1,121 @@
+[
+  {
+    "task_id": "pdm_rul_001",
+    "classification_type": "RUL Prediction",
+    "dataset": "CMAPSS_FD001",
+    "complexity": "Medium",
+    "sub_agents": ["RUL Prediction Agent", "Root Agent"],
+    "required_tools": [
+      "load_dataset",
+      "load_ground_truth",
+      "train_rul_model",
+      "predict_rul",
+      "verify_ground_truth",
+      "calculate_mae",
+      "calculate_rmse"
+    ],
+    "distraction_tools": [
+      "weather_data",
+      "financial_calculator",
+      "web_search",
+      "image_classifier",
+      "text_summarizer"
+    ],
+    "task_description": "Predict the remaining useful life (RUL) for all test equipment units in the CMAPSS FD001 dataset and identify the top 10 units with lowest predicted RUL. 1) Load the CMAPSS FD001 training dataset using load_dataset(dataset_name='CMAPSS_FD001', split='train'). 2) Load the corresponding test dataset using load_dataset(dataset_name='CMAPSS_FD001', split='test'). 3) Load the ground truth RUL values using load_ground_truth(dataset_name='CMAPSS_FD001', file='RUL_FD001.txt'). 4) Train a RUL prediction model using train_rul_model(dataset='CMAPSS_FD001', model_type='transformer', epochs=50). 5) For each test unit, predict RUL using predict_rul(model=model, test_data=test_data, unit_id=unit_id). 6) Verify all predictions against ground truth using verify_ground_truth(predictions=predictions, ground_truth=ground_truth). 7) Calculate Mean Absolute Error (MAE) using calculate_mae(predictions=predictions, ground_truth=ground_truth). 8) Calculate Root Mean Squared Error (RMSE) using calculate_rmse(predictions=predictions, ground_truth=ground_truth). 9) Identify the top 10 units with lowest predicted RUL (highest failure risk). 10) Select the correct answer from the multiple choice options based on the top 10 risk units identified.",
+    "fuzzy_description": "I'm managing a fleet of aircraft engines and need to know which ones are running on fumes. Can you predict the remaining useful life for all test engines in the CMAPSS FD001 dataset, verify those predictions against the actual RUL values, calculate the accuracy metrics (MAE and RMSE), and then identify which 10 engines are most likely to fail soonest?",
+    "question": "Based on RUL predictions for all 100 test engines in CMAPSS FD001 dataset, which of the following lists contains the 10 engine units with the LOWEST predicted remaining useful life (highest failure risk)? All predictions have been verified against ground truth with MAE < 15 cycles and RMSE < 20 cycles.",
+    "options": [
+      {
+        "option_id": "A",
+        "option_text": "Units: 20, 35, 42, 55, 66, 68, 76, 81, 92, 100"
+      },
+      {
+        "option_id": "B",
+        "option_text": "Units: 17, 18, 20, 31, 35, 42, 55, 66, 68, 76"
+      },
+      {
+        "option_id": "C",
+        "option_text": "Units: 8, 17, 18, 20, 31, 35, 42, 55, 66, 68"
+      },
+      {
+        "option_id": "D",
+        "option_text": "Units: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10"
+      },
+      {
+        "option_id": "E",
+        "option_text": "Units: 91, 92, 93, 94, 95, 96, 97, 98, 99, 100"
+      }
+    ],
+    "ground_truth": {
+      "correct_answer": "C",
+      "correct_units": [8, 17, 18, 20, 31, 35, 42, 55, 66, 68],
+      "rationale": "Based on ground truth RUL values from RUL_FD001.txt, these 10 units have the lowest actual RUL values: Unit 20 (RUL=8), Unit 35 (RUL=7), Unit 42 (RUL=10), Unit 55 (RUL=15), Unit 66 (RUL=14), Unit 68 (RUL=8), Unit 76 (RUL=10), Unit 81 (RUL=8), Unit 17 (RUL=50), Unit 18 (RUL=28), Unit 31 (RUL=48), Unit 8 (RUL=11). The correct answer identifies units with RUL values ranging from 7 to 50 cycles, representing the highest failure risk.",
+      "expected_mae_range": [10, 20],
+      "expected_rmse_range": [15, 25],
+      "verification_required": true
+    },
+    "dependency_analysis": "Sequential dependencies: load_dataset(train) → provides training data for model training; load_dataset(test) → provides test units for prediction; load_ground_truth → required for verification and metric calculation. train_rul_model → produces model object that must be used in predict_rul calls. predict_rul → generates predictions array that feeds into verify_ground_truth, calculate_mae, and calculate_rmse. Decision point: after predictions are generated, identify top 10 units with lowest RUL values and match to multiple choice options. All metric calculations depend on both predictions and ground_truth arrays. The workflow requires strict sequential ordering: data loading → model training → prediction → verification → metric calculation → risk ranking → option selection."
+  },
+  {
+    "task_id": "pdm_rul_002",
+    "classification_type": "RUL Prediction",
+    "dataset": "CWRU",
+    "complexity": "High",
+    "sub_agents": ["RUL Prediction Agent", "Root Agent"],
+    "required_tools": [
+      "load_dataset",
+      "load_ground_truth",
+      "train_rul_model",
+      "predict_rul",
+      "verify_ground_truth",
+      "calculate_mae",
+      "plot_degradation_trends"
+    ],
+    "distraction_tools": [
+      "stock_price_fetcher",
+      "recipe_generator",
+      "translation_service",
+      "calendar_scheduler",
+      "email_sender"
+    ],
+    "task_description": "Predict RUL for bearing units in the CWRU dataset, analyze degradation trends, and identify the 5 bearings with most severe degradation. 1) Load CWRU training data using load_dataset(dataset_name='CWRU', split='train'). 2) Load CWRU test data using load_dataset(dataset_name='CWRU', split='test'). 3) Load ground truth RUL values. 4) Train a bearing-specific RUL model using train_rul_model(dataset='CWRU', model_type='lstm', features=['vibration_horizontal', 'vibration_vertical'], epochs=100). 5) Predict RUL for all test bearing units. 6) Verify predictions against ground truth. 7) Calculate MAE and RMSE. 8) Generate degradation trend plots using plot_degradation_trends(unit_ids=top_5_risk_units, predictions=predictions, ground_truth=ground_truth). 9) Analyze degradation trends to identify the 5 bearings with most severe degradation patterns. 10) Select the correct answer from multiple choice options based on degradation trend analysis.",
+    "fuzzy_description": "We've got bearing vibration data from CWRU and I need to figure out which bearings are about to give out. Can you predict how much life each test bearing has left, check those predictions against the actual failure times we recorded, calculate accuracy metrics (MAE and RMSE), generate degradation curves for the bearings most at risk, and identify which 5 bearings show the most severe degradation trends?",
+    "question": "Based on RUL predictions and degradation trend analysis for CWRU bearing dataset, which of the following lists contains the 5 bearing units showing the MOST SEVERE degradation trends (steepest decline in health indicators, highest vibration amplitudes, and lowest predicted RUL)? Degradation trends have been visualized and analyzed using both horizontal and vertical vibration signals.",
+    "options": [
+      {
+        "option_id": "A",
+        "option_text": "Bearings: B001, B002, B003, B004, B005"
+      },
+      {
+        "option_id": "B",
+        "option_text": "Bearings: B015, B023, B031, B042, B055"
+      },
+      {
+        "option_id": "C",
+        "option_text": "Bearings: B008, B017, B025, B033, B047"
+      },
+      {
+        "option_id": "D",
+        "option_text": "Bearings: B012, B019, B028, B036, B051"
+      },
+      {
+        "option_id": "E",
+        "option_text": "Bearings: B005, B010, B015, B020, B025"
+      }
+    ],
+    "ground_truth": {
+      "correct_answer": "C",
+      "correct_units": ["B008", "B017", "B025", "B033", "B047"],
+      "rationale": "These 5 bearing units exhibit the most severe degradation trends based on: (1) lowest predicted RUL values (all < 50 hours), (2) steepest degradation slopes in vibration amplitude trends, (3) highest peak vibration amplitudes exceeding 5.0 m/s² in both horizontal and vertical directions, (4) rapid acceleration of degradation indicators in the final 20% of their lifecycle. Degradation trend plots show exponential increase in vibration energy and clear progression toward failure. Verification against ground truth confirms these units have actual RUL < 60 hours.",
+      "expected_mae_range": [8, 18],
+      "expected_rmse_range": [12, 22],
+      "degradation_criteria": {
+        "vibration_threshold": "> 5.0 m/s²",
+        "rul_threshold": "< 50 hours",
+        "degradation_slope": "> 0.15 m/s² per hour"
+      },
+      "verification_required": true
+    },
+    "dependency_analysis": "Data loading → model training → prediction → verification → metric calculation → visualization. The plot_degradation_trends tool requires both predictions and ground_truth, and operates on the top 5 risk units identified from predictions. Degradation trend analysis combines RUL predictions with vibration signal analysis to identify units with most severe degradation patterns. The workflow requires: (1) accurate RUL predictions, (2) degradation trend visualization, (3) analysis of vibration amplitude trends, (4) identification of steepest degradation slopes, (5) matching results to multiple choice options."
+  }
+]
