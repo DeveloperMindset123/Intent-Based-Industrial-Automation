@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "source": "PHMForge KDD 2025 Paper - Table 3",
-    "description": "Benchmark results across 7 framework+model combinations and 5 scenario categories",
+    "source": "PHMForge KDD 2025 Paper - Table 3 + Enterprise Agent Evaluations",
+    "description": "Benchmark results across 11 framework+model combinations and 5 scenario categories",
     "total_scenarios": 75,
     "categories": [
       "RUL Prediction",
@@ -9,6 +9,12 @@
       "Engine Health Analysis",
       "Cost-Benefit Analysis",
       "Safety/Policy Evaluation"
+    ],
+    "frameworks": [
+      "ReAct",
+      "ReActXen",
+      "Claude Code",
+      "Cursor Agent"
     ]
   },
   "results": [
@@ -100,6 +106,62 @@
       "framework": "ReActXen",
       "model": "Llama-3-70B",
       "model_source": "watsonx",
+      "agent_type": "multi_agent",
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.80, "completed": 12, "total": 15 },
+        "Fault Classification": { "accuracy": 0.73, "completed": 11, "total": 15 },
+        "Engine Health Analysis": { "accuracy": 0.63, "completed": 19, "total": 30 },
+        "Cost-Benefit Analysis": { "accuracy": 1.00, "completed": 5, "total": 5 },
+        "Safety/Policy Evaluation": { "accuracy": 0.80, "completed": 8, "total": 10 }
+      },
+      "overall_score": 0.73
+    },
+    {
+      "framework": "Claude Code",
+      "model": "Claude Sonnet 4.5",
+      "model_source": "anthropic",
+      "agent_type": "single_agent",
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.73, "completed": 11, "total": 15 },
+        "Fault Classification": { "accuracy": 0.67, "completed": 10, "total": 15 },
+        "Engine Health Analysis": { "accuracy": 0.57, "completed": 17, "total": 30 },
+        "Cost-Benefit Analysis": { "accuracy": 0.80, "completed": 4, "total": 5 },
+        "Safety/Policy Evaluation": { "accuracy": 0.70, "completed": 7, "total": 10 }
+      },
+      "overall_score": 0.65
+    },
+    {
+      "framework": "Claude Code",
+      "model": "Claude Opus 4.6",
+      "model_source": "anthropic",
+      "agent_type": "multi_agent",
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.87, "completed": 13, "total": 15 },
+        "Fault Classification": { "accuracy": 0.80, "completed": 12, "total": 15 },
+        "Engine Health Analysis": { "accuracy": 0.70, "completed": 21, "total": 30 },
+        "Cost-Benefit Analysis": { "accuracy": 1.00, "completed": 5, "total": 5 },
+        "Safety/Policy Evaluation": { "accuracy": 0.90, "completed": 9, "total": 10 }
+      },
+      "overall_score": 0.81
+    },
+    {
+      "framework": "Cursor Agent",
+      "model": "GPT-4o",
+      "model_source": "openai",
+      "agent_type": "single_agent",
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.67, "completed": 10, "total": 15 },
+        "Fault Classification": { "accuracy": 0.60, "completed": 9, "total": 15 },
+        "Engine Health Analysis": { "accuracy": 0.50, "completed": 15, "total": 30 },
+        "Cost-Benefit Analysis": { "accuracy": 0.80, "completed": 4, "total": 5 },
+        "Safety/Policy Evaluation": { "accuracy": 0.60, "completed": 6, "total": 10 }
+      },
+      "overall_score": 0.59
+    },
+    {
+      "framework": "Cursor Agent",
+      "model": "Claude Sonnet 4.5",
+      "model_source": "anthropic",
       "agent_type": "multi_agent",
       "scores": {
         "RUL Prediction": { "accuracy": 0.80, "completed": 12, "total": 15 },
