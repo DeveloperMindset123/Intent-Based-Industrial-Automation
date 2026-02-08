@@ -1,3 +1,374 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7f8316077249bdceb6b811b3942919a66627cb5aca264e54395b753f11e37ac2
-size 17050
+{
+  "version": "1.0",
+  "description": "Comprehensive dictionary of acronyms and abbreviations used in predictive maintenance scenarios and datasets",
+  "last_updated": "2025-01-27",
+  "data_source": "submission096 - PDMBench standardized predictive maintenance datasets",
+
+  "predictive_maintenance_core": {
+    "RUL": {
+      "full_form": "Remaining Useful Life",
+      "definition": "The number of operational cycles or time units remaining before equipment failure",
+      "usage": "Primary metric for predictive maintenance - predicts when equipment will fail",
+      "units": "cycles, hours, or time units"
+    },
+    "PHM": {
+      "full_form": "Prognostics and Health Management",
+      "definition": "A discipline focused on predicting when equipment failure might occur and managing health accordingly",
+      "usage": "Broader field encompassing predictive maintenance, condition monitoring, and health assessment"
+    },
+    "PdM": {
+      "full_form": "Predictive Maintenance",
+      "definition": "Maintenance strategy that uses data analysis to predict when equipment failure might occur",
+      "usage": "Alternative to reactive (fix after failure) and preventive (fix on schedule) maintenance"
+    },
+    "MAE": {
+      "full_form": "Mean Absolute Error",
+      "definition": "Average of absolute differences between predicted and actual values",
+      "formula": "MAE = (1/n) * Σ|predicted - actual|",
+      "usage": "Metric for evaluating RUL prediction accuracy",
+      "units": "Same as RUL (typically cycles)"
+    },
+    "RMSE": {
+      "full_form": "Root Mean Squared Error",
+      "definition": "Square root of the average of squared differences between predicted and actual values",
+      "formula": "RMSE = √[(1/n) * Σ(predicted - actual)²]",
+      "usage": "Metric for evaluating RUL prediction accuracy, penalizes large errors more than MAE",
+      "units": "Same as RUL (typically cycles)"
+    }
+  },
+
+  "dataset_acronyms": {
+    "CMAPSS": {
+      "full_form": "Commercial Modular Aero-Propulsion System Simulation",
+      "definition": "NASA's turbofan engine degradation simulation dataset",
+      "variants": ["FD001", "FD002", "FD003", "FD004"],
+      "usage": "Standard benchmark for RUL prediction in aerospace applications",
+      "reference": "Saxena et al., PHM08 Conference"
+    },
+    "CWRU": {
+      "full_form": "Case Western Reserve University",
+      "definition": "Bearing fault dataset from CWRU's Bearing Data Center",
+      "usage": "Widely used for bearing fault classification and RUL prediction",
+      "fault_types": ["Inner race", "Outer race", "Ball race"]
+    },
+    "FEMTO": {
+      "full_form": "FEMTO-ST Institute",
+      "definition": "Bearing dataset from FEMTO-ST Institute, includes multiple operational scenarios",
+      "usage": "Used for RUL prediction under varying operational conditions",
+      "scenarios": "Three different operational scenarios"
+    },
+    "IMS": {
+      "full_form": "Intelligent Maintenance Systems",
+      "definition": "High-temporal-resolution bearing dataset from IMS Center, University of Cincinnati",
+      "usage": "RUL prediction with high-frequency vibration data",
+      "characteristics": "High temporal resolution, long-duration tests"
+    },
+    "HUST": {
+      "full_form": "Huazhong University of Science and Technology",
+      "definition": "Bearing dataset with varying speeds and loads",
+      "usage": "RUL prediction and fault classification under diverse operating conditions",
+      "characteristics": "Multiple bearing types, varying speeds and loads"
+    },
+    "XJTU": {
+      "full_form": "Xi'an Jiaotong University",
+      "definition": "Bearing dataset with five different fault types",
+      "usage": "RUL prediction and fault classification with multiple fault modes",
+      "fault_types": "Five distinct fault types"
+    },
+    "MFPT": {
+      "full_form": "Machinery Failure Prevention Technology",
+      "definition": "High-frequency vibration dataset (97.656KHz sampling rate)",
+      "usage": "RUL prediction using frequency domain analysis",
+      "characteristics": "Very high sampling rate, suitable for frequency domain features"
+    },
+    "Mendeley": {
+      "full_form": "Mendeley Data Repository",
+      "definition": "Bearing dataset with non-stationary conditions (varying speed 600-1800RPM)",
+      "usage": "RUL prediction under non-stationary signal conditions",
+      "characteristics": "Non-stationary signals due to varying operational speed"
+    },
+    "Paderborn": {
+      "full_form": "Paderborn University",
+      "definition": "Bearing dataset with multimodal sensors (vibration, current, torque, speed)",
+      "usage": "Fault classification and RUL prediction using multiple sensor modalities",
+      "characteristics": "Multimodal sensors, artificial and natural degradation"
+    },
+    "UoC": {
+      "full_form": "University of Cincinnati",
+      "definition": "Gearbox fault dataset",
+      "usage": "Gearbox fault classification",
+      "note": "Also referred to as GearboxUoC"
+    },
+    "GearboxUoC": {
+      "full_form": "Gearbox University of Cincinnati",
+      "definition": "Gearbox fault dataset from University of Cincinnati",
+      "usage": "Gearbox component fault classification",
+      "components": ["Sun gear", "Planet gear", "Ring gear"]
+    },
+    "PlanetaryPdM": {
+      "full_form": "Planetary Gearbox Predictive Maintenance",
+      "definition": "Planetary gearbox dataset for component-specific fault localization",
+      "usage": "Fault classification and component localization in planetary gearboxes",
+      "components": ["Sun gear", "Planet gear", "Ring gear"]
+    },
+    "MAFAULDA": {
+      "full_form": "MAchine FAUlt Localization and Detection Algorithm",
+      "definition": "Large-scale fault dataset",
+      "usage": "Fault classification and localization",
+      "characteristics": "Large dataset size"
+    },
+    "EngineMTQA": {
+      "full_form": "Engine Multi-Task Question Answering",
+      "definition": "Large-scale engine health question-answering dataset (110K+ questions)",
+      "usage": "Testing LLM capabilities in understanding, perception, reasoning, and decision-making for engine health",
+      "categories": [
+        "Understanding",
+        "Perception",
+        "Reasoning",
+        "Decision-Making"
+      ],
+      "reference": "ITFormer paper dataset"
+    }
+  },
+
+  "aircraft_engine_components": {
+    "HPC": {
+      "full_form": "High-Pressure Compressor",
+      "definition": "Component that compresses air at high pressure in a turbofan engine",
+      "usage": "Common failure mode in CMAPSS dataset (HPC degradation)"
+    },
+    "LPC": {
+      "full_form": "Low-Pressure Compressor",
+      "definition": "Component that compresses air at lower pressure in a turbofan engine",
+      "usage": "Engine component monitored in EngineMTQA scenarios"
+    },
+    "HPT": {
+      "full_form": "High-Pressure Turbine",
+      "definition": "Turbine section operating at high pressure, extracts energy from high-pressure gas",
+      "usage": "Engine component monitored in EngineMTQA scenarios"
+    },
+    "LPT": {
+      "full_form": "Low-Pressure Turbine",
+      "definition": "Turbine section operating at lower pressure, extracts energy from low-pressure gas",
+      "usage": "Engine component monitored in EngineMTQA scenarios"
+    },
+    "FD": {
+      "full_form": "Flight Data",
+      "definition": "In CMAPSS context, refers to flight dataset number (FD001, FD002, etc.)",
+      "usage": "CMAPSS dataset variants (FD001-FD004)"
+    }
+  },
+
+  "machine_learning_models": {
+    "MLP": {
+      "full_form": "Multi-Layer Perceptron",
+      "definition": "Feedforward neural network with multiple layers",
+      "usage": "Baseline model for RUL prediction and fault classification"
+    },
+    "LSTM": {
+      "full_form": "Long Short-Term Memory",
+      "definition": "Recurrent neural network architecture capable of learning long-term dependencies",
+      "usage": "Time series models for RUL prediction, handles sequential sensor data"
+    },
+    "CNN": {
+      "full_form": "Convolutional Neural Network",
+      "definition": "Deep learning architecture designed for processing grid-like data",
+      "usage": "Fault classification from vibration signals, feature extraction"
+    },
+    "RNN": {
+      "full_form": "Recurrent Neural Network",
+      "definition": "Neural network architecture for sequential data",
+      "usage": "Time series analysis, RUL prediction"
+    }
+  },
+
+  "regulatory_and_standards": {
+    "FAA": {
+      "full_form": "Federal Aviation Administration",
+      "definition": "US government agency responsible for aviation safety regulations",
+      "usage": "Regulatory compliance for aircraft engine maintenance"
+    },
+    "EASA": {
+      "full_form": "European Union Aviation Safety Agency",
+      "definition": "European agency responsible for aviation safety regulations",
+      "usage": "Regulatory compliance for aircraft engine maintenance in Europe"
+    },
+    "ISO": {
+      "full_form": "International Organization for Standardization",
+      "definition": "International standards organization",
+      "relevant_standards": [
+        "ISO_10816 (Vibration standards)",
+        "ISO_6336 (Gear standards)"
+      ],
+      "usage": "Vibration and mechanical standards for equipment health assessment"
+    },
+    "ANSI": {
+      "full_form": "American National Standards Institute",
+      "definition": "US standards organization",
+      "relevant_standards": ["ANSI_S2.41 (Vibration standards)"],
+      "usage": "Vibration standards for bearing health assessment"
+    },
+    "IEC": {
+      "full_form": "International Electrotechnical Commission",
+      "definition": "International standards organization for electrical and electronic technologies",
+      "relevant_standards": ["IEC_60034 (Rotating electrical machines)"],
+      "usage": "Standards for electric motor health assessment"
+    },
+    "NEMA": {
+      "full_form": "National Electrical Manufacturers Association",
+      "definition": "US trade association for electrical equipment manufacturers",
+      "relevant_standards": ["NEMA_MG1 (Motor and generator standards)"],
+      "usage": "Standards for electric motor health assessment"
+    },
+    "AGMA": {
+      "full_form": "American Gear Manufacturers Association",
+      "definition": "US trade association for gear manufacturers",
+      "relevant_standards": ["AGMA_2001 (Gear standards)"],
+      "usage": "Standards for gearbox health assessment"
+    },
+    "IEEE": {
+      "full_form": "Institute of Electrical and Electronics Engineers",
+      "definition": "Professional organization for electrical and electronics engineering",
+      "relevant_standards": ["IEEE_112 (Motor testing standards)"],
+      "usage": "Standards for motor testing and health assessment"
+    }
+  },
+
+  "technical_acronyms": {
+    "JSON": {
+      "full_form": "JavaScript Object Notation",
+      "definition": "Lightweight data interchange format",
+      "usage": "Format for scenario definitions and agent outputs"
+    },
+    "API": {
+      "full_form": "Application Programming Interface",
+      "definition": "Set of protocols and tools for building software applications",
+      "usage": "Interface for accessing tools and services in the agent framework"
+    },
+    "SME": {
+      "full_form": "Subject Matter Expert",
+      "definition": "Person with deep knowledge and expertise in a specific domain",
+      "usage": "Experts who validate scenarios and provide domain knowledge"
+    },
+    "QA": {
+      "full_form": "Question Answering",
+      "definition": "Natural language processing task of answering questions",
+      "usage": "EngineMTQA dataset format - questions about engine health"
+    },
+    "KDD": {
+      "full_form": "Knowledge Discovery and Data Mining",
+      "definition": "ACM SIGKDD Conference on Knowledge Discovery and Data Mining",
+      "usage": "Target conference for research paper submission"
+    },
+    "MCP": {
+      "full_form": "Model Context Protocol",
+      "definition": "Protocol for connecting AI applications to data sources and tools",
+      "usage": "Referenced in MCP-Bench and MCP Universe papers"
+    },
+    "MLE": {
+      "full_form": "Machine Learning Engineering",
+      "definition": "Field combining machine learning with software engineering",
+      "usage": "Referenced in MLE Bench paper - baseline for scenario definition"
+    },
+    "ITFormer": {
+      "full_form": "Instruct Time Transformer",
+      "definition": "Framework combining time series encoders with frozen LLMs for multi-modal QA",
+      "usage": "Related work that created EngineMTQA dataset (110K questions)"
+    },
+    "PHMBench": {
+      "full_form": "Prognostics and Health Management Benchmark",
+      "definition": "Domain-specific benchmarking framework for evaluating large models in PHM",
+      "usage": "Related work - created 100 industry-specific scenarios for RUL prediction"
+    },
+    "PDMBench": {
+      "full_form": "Predictive Maintenance Benchmark",
+      "definition": "Standardized benchmark dataset for predictive maintenance (14 datasets)",
+      "usage": "Source of datasets in submission096 directory"
+    },
+    "Azure": {
+      "full_form": "Azure Predictive Maintenance Dataset",
+      "definition": "Simulated aircraft engine degradation dataset from Microsoft Azure",
+      "usage": "RUL prediction for aircraft engines under various operational conditions",
+      "characteristics": "Simulated sensor data, multiple operational settings"
+    },
+    "ElectricMotorVibrations": {
+      "full_form": "Electric Motor Vibrations Dataset",
+      "definition": "Vibration dataset from electric motors under various fault conditions",
+      "usage": "Fault classification for electric motor bearing and rotor faults",
+      "characteristics": "Acceleration measurements (AccX, AccY, AccZ), torque, ohm readings"
+    },
+    "RotorBrokenBar": {
+      "full_form": "Rotor Broken Bar Dataset",
+      "definition": "Dataset for detecting broken rotor bars in induction motors",
+      "usage": "Fault classification for rotor bar failures in electric motors",
+      "fault_types": ["Healthy", "1 broken bar", "2 broken bars", "3 broken bars"]
+    }
+  },
+
+  "data_format_acronyms": {
+    "CSV": {
+      "full_form": "Comma-Separated Values",
+      "definition": "File format for storing tabular data",
+      "usage": "Format for most dataset files (e.g., CWRU_train.csv)"
+    },
+    "TXT": {
+      "full_form": "Text File",
+      "definition": "Plain text file format",
+      "usage": "Format for CMAPSS datasets (train_FD001.txt, test_FD001.txt, RUL_FD001.txt)"
+    },
+    "JSONL": {
+      "full_form": "JSON Lines",
+      "definition": "File format with one JSON object per line",
+      "usage": "Format for EngineMTQA dataset (train_qa.jsonl, test_qa.jsonl)"
+    },
+    "PSI": {
+      "full_form": "Pounds per Square Inch",
+      "definition": "Unit of pressure measurement",
+      "usage": "Pressure measurements in equipment (e.g., gearbox oil pressure)"
+    },
+    "RPM": {
+      "full_form": "Revolutions Per Minute",
+      "definition": "Unit of rotational speed",
+      "usage": "Rotational speed measurements (e.g., bearing speed 600-1800 RPM)"
+    },
+    "KHz": {
+      "full_form": "Kilohertz",
+      "definition": "Unit of frequency (1000 hertz)",
+      "usage": "Sampling rate measurements (e.g., 97.656 KHz sampling rate)"
+    }
+  },
+
+  "evaluation_metrics": {
+    "F1": {
+      "full_form": "F1 Score",
+      "definition": "Harmonic mean of precision and recall",
+      "formula": "F1 = 2 * (precision * recall) / (precision + recall)",
+      "usage": "Metric for fault classification performance"
+    },
+    "Precision": {
+      "full_form": "Precision",
+      "definition": "Ratio of true positives to all predicted positives",
+      "formula": "Precision = TP / (TP + FP)",
+      "usage": "Metric for fault classification accuracy per class"
+    },
+    "Recall": {
+      "full_form": "Recall (Sensitivity)",
+      "definition": "Ratio of true positives to all actual positives",
+      "formula": "Recall = TP / (TP + FN)",
+      "usage": "Metric for fault classification completeness per class"
+    },
+    "Accuracy": {
+      "full_form": "Classification Accuracy",
+      "definition": "Ratio of correct predictions to total predictions",
+      "formula": "Accuracy = (TP + TN) / (TP + TN + FP + FN)",
+      "usage": "Overall metric for fault classification performance"
+    }
+  },
+
+  "usage_notes": {
+    "dataset_naming": "Dataset names in scenarios should exactly match file names in submission096 directory (e.g., 'CMAPSS_FD001' matches 'train_FD001.txt')",
+    "acronym_variations": "Some acronyms may have variations (e.g., 'UoC' vs 'GearboxUoC' for University of Cincinnati gearbox dataset)",
+    "case_sensitivity": "Acronyms are typically case-sensitive in code but may vary in documentation",
+    "context_dependent": "Some acronyms have multiple meanings depending on context (e.g., 'API' can mean different things in different domains)"
+  }
+}

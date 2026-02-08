@@ -1,0 +1,9 @@
+*.parquet filter=lfs diff=lfs merge=lfs -text
+*.json filter=lfs diff=lfs merge=lfs -text
+# Exclude scenario/results/frontend JSON from LFS (needed for Streamlit Cloud)
+ReActXen/src/reactxen/demo/intent_implementation_demo/scenario/*.json !filter !diff !merge
+ReActXen/src/reactxen/demo/intent_implementation_demo/scenarios/*.json !filter !diff !merge
+ReActXen/src/reactxen/demo/intent_implementation_demo/results/*.json !filter !diff !merge
+ReActXen/src/reactxen/demo/intent_implementation_demo/frontend/**/*.json !filter !diff !merge
+*.csv filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -text

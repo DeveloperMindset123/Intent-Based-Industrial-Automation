@@ -1,3 +1,294 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:e521ee899cef0db4c9cbd449b7cf5acc20dc71b4f3ad27fc2e4a45d6764de17b
-size 17898
+{
+  "document_purpose": "This document explains the scenario structure for Subject Matter Expert (SME) review. Scenarios represent real-world predictive maintenance tasks that industrial operations teams face daily.",
+  "last_updated": "2025-12-27",
+  "data_source": "submission096 - PDMBench standardized datasets from real industrial equipment",
+  "recent_updates": {
+    "date": "2025-12-27",
+    "changes": [
+      "Renamed 'fuzzy_description' to 'input_question' - better represents the natural language input the system receives",
+      "Renamed 'task_description' to 'procedure' - clarifies this field describes the step-by-step procedure using available system tools",
+      "Corrected dataset assignments: RUL Prediction scenarios now exclusively use RUL-capable datasets (CMAPSS_FD001-FD004, FEMTO)",
+      "Reassigned Fault Classification scenarios to use appropriate fault classification datasets (CWRU, IMS, ElectricMotorVibrations, Paderborn, etc.)",
+      "Extracted actual ground truth from datasets - replaced all placeholder/estimated values with real data",
+      "Updated MAE and RMSE ranges based on actual dataset distributions",
+      "Fixed FEMTO extraction to return unique segment IDs",
+      "Added support for datasets without segment_idx column (e.g., ElectricMotorVibrations)"
+    ]
+  },
+
+  "scenario_generation_metrics": {
+    "total_scenarios": 75,
+    "scenario_breakdown": {
+      "rul_prediction": 15,
+      "fault_classification": 15,
+      "cost_benefit_analysis": 5,
+      "safety_policy_evaluation": 10,
+      "engine_health_analysis": 30
+    },
+    "dataset_distribution": {
+      "rul_prediction_datasets": {
+        "CMAPSS_FD001": 6,
+        "CMAPSS_FD002": 3,
+        "CMAPSS_FD003": 2,
+        "CMAPSS_FD004": 3,
+        "FEMTO": 6
+      },
+      "fault_classification_datasets": {
+        "CWRU": 4,
+        "IMS": 1,
+        "XJTU": 3,
+        "ElectricMotorVibrations": 3,
+        "Paderborn": 2,
+        "HUST": 2,
+        "MFPT": 2,
+        "Mendeley": 2,
+        "GearboxUoC": 1,
+        "PlanetaryPdM": 2,
+        "RotorBrokenBar": 2
+      },
+      "other_datasets": {
+        "EngineMTQA": 30,
+        "Azure": 1
+      },
+      "note": "All RUL Prediction scenarios now use datasets with actual RUL ground truth (CMAPSS, FEMTO). Fault Classification scenarios use datasets with fault labels."
+    },
+    "manual_generation_estimates": {
+      "hours_per_scenario_type": {
+        "rul_prediction": {
+          "description": "RUL Prediction scenarios require defining failure prediction tasks, selecting appropriate datasets, and establishing validation criteria",
+          "hours_per_scenario": 5,
+          "total_hours": 75,
+          "breakdown": "2 hours (task definition) + 1.5 hours (dataset selection & validation) + 1 hour (ground truth setup) + 0.5 hours (review)"
+        },
+        "fault_classification": {
+          "description": "Fault Classification scenarios require identifying fault types, defining classification criteria, and setting accuracy expectations",
+          "hours_per_scenario": 5,
+          "total_hours": 75,
+          "breakdown": "2 hours (fault type identification) + 1.5 hours (classification criteria) + 1 hour (accuracy benchmarks) + 0.5 hours (review)"
+        },
+        "cost_benefit_analysis": {
+          "description": "Cost-Benefit Analysis scenarios require defining cost models, maintenance strategies, and optimization criteria",
+          "hours_per_scenario": 7,
+          "total_hours": 35,
+          "breakdown": "3 hours (cost model definition) + 2 hours (strategy comparison) + 1.5 hours (optimization criteria) + 0.5 hours (review)"
+        },
+        "safety_policy_evaluation": {
+          "description": "Safety/Policy Evaluation scenarios require regulatory knowledge, risk assessment frameworks, and compliance criteria",
+          "hours_per_scenario": 7,
+          "total_hours": 70,
+          "breakdown": "3 hours (regulatory requirements) + 2 hours (risk assessment) + 1.5 hours (compliance criteria) + 0.5 hours (review)"
+        },
+        "engine_health_analysis": {
+          "description": "Engine Health Analysis scenarios (from EngineMTQA) require understanding engine signals, health indicators, and operational contexts",
+          "hours_per_scenario": 2.5,
+          "total_hours": 75,
+          "breakdown": "1 hour (question formulation) + 0.75 hours (signal interpretation) + 0.5 hours (answer validation) + 0.25 hours (review)"
+        }
+      },
+      "total_manual_hours": 330,
+      "sme_review_overhead": {
+        "description": "Additional time for SME review, validation, and refinement of scenarios",
+        "percentage": 20,
+        "hours": 66,
+        "breakdown": "Initial review (30 hours) + Validation against real operations (20 hours) + Refinement iterations (16 hours)"
+      },
+      "total_hours_with_review": 396,
+      "estimated_team_composition": {
+        "primary_scenario_writer": {
+          "role": "Predictive Maintenance Engineer / Data Scientist",
+          "hours": 200,
+          "responsibility": "Drafting technical scenarios, dataset selection, ground truth definition"
+        },
+        "sme_reviewer_1": {
+          "role": "Operations Manager / Maintenance Lead",
+          "hours": 100,
+          "responsibility": "Validating real-world relevance, operational feasibility, business context"
+        },
+        "sme_reviewer_2": {
+          "role": "Domain Expert (Aerospace/Manufacturing)",
+          "hours": 96,
+          "responsibility": "Technical accuracy, regulatory compliance, industry best practices"
+        }
+      },
+      "total_team_members": 3,
+      "cost_calculation": {
+        "overhead_labor_rate_per_hour": 160,
+        "total_hours": 396,
+        "total_cost": 63360,
+        "cost_per_scenario": 844.8,
+        "breakdown_by_role": {
+          "primary_writer": {
+            "hours": 200,
+            "cost": 32000
+          },
+          "sme_reviewer_1": {
+            "hours": 100,
+            "cost": 16000
+          },
+          "sme_reviewer_2": {
+            "hours": 96,
+            "cost": 15360
+          }
+        }
+      }
+    }
+  },
+
+  "field_explanations_for_sme_review": {
+    "task_id": {
+      "what_it_is": "Unique identifier like 'pdm_rul_001' or 'pdm_fault_002'",
+      "why_it_matters": "Tracks which scenario is being evaluated - like a work order number",
+      "industrial_relevance": "Similar to maintenance work order IDs used in CMMS systems"
+    },
+
+    "classification_type": {
+      "what_it_is": "Category of task: RUL Prediction, Fault Classification, Cost-Benefit Analysis, Safety/Policy Evaluation, or Engine Health Analysis",
+      "why_it_matters": "Determines which type of maintenance decision is being made",
+      "industrial_relevance": "Maps to real operations: 'When will it fail?' (RUL), 'What's wrong?' (Fault), 'Is it worth fixing?' (Cost-Benefit), 'Is it safe (equipment, people working on it, close proximity dangers)?' (Safety)",
+      "daily_use_examples": {
+        "rul_prediction": "Operations manager asking: 'Which of our 50 pumps will fail in the next 30 days?'",
+        "fault_classification": "Maintenance technician asking: 'Is this bearing showing inner race or outer race damage?'",
+        "cost_benefit_analysis": "Plant/Substation manager asking: 'Should we do preventive maintenance now or wait until failure?'",
+        "safety_policy_evaluation": "Environmental Health & Safety (EH&S) officer asking: 'Does this equipment meet OSHA/FAA compliance requirements? Does it align with 10 wheels of safety? (There might also be some internal safety measures in place with corresponding company, a lot of industrial companies have this on top of OSHA/FAA guidelines in-place for safety awareness/safety first approach)'",
+        "engine_health_analysis": "Engineer asking: 'What does this vibration pattern indicate about engine health?' or 'what is the frequency of the vibration? What is the PSI of the oil pump?' 'what is the voltage running through certain equipment? (since higher voltage/current indicates potential overload/fault present)'"
+      }
+    },
+
+    "dataset": {
+      "what_it_is": "Name of the equipment dataset (e.g., CMAPSS_FD001 for aircraft engines, CWRU for bearings)",
+      "why_it_matters": "Determines what type of equipment and data the scenario uses",
+      "industrial_relevance": "Represents real equipment types: aircraft engines, industrial bearings, gearboxes, electric motors",
+      "real_world_equivalence": "Like having sensor data from your actual plant equipment - vibration, temperature, pressure readings"
+    },
+
+    "input_question": {
+      "what_it_is": "How a real person would actually ask the question - casual, business-focused, the natural language input the system receives",
+      "why_it_matters": "Tests if the system understands natural language requests from non-technical users as well as technical users who use acronyms during day to day operations.",
+      "industrial_relevance": "This is how plant managers, operators, and maintenance leads actually communicate - not in technical jargon, and they use acronyms specific to their domain a lot",
+      "example": "'Which aircraft engines are running on fumes and need immediate attention?' instead of 'Predict RUL for all test units and calculate MAE'"
+    },
+
+    "procedure": {
+      "what_it_is": "Step-by-step procedure for solving the problem using the tools available in the system",
+      "why_it_matters": "Defines the technical workflow and methodology to address the input question",
+      "industrial_relevance": "Like a detailed maintenance procedure or work instruction - specific, measurable, actionable steps using available system tools",
+      "relationship_to_input": "The system must translate the input_question (what user wants to know) into a procedure (how to solve it using available tools)"
+    },
+
+    "required_tools": {
+      "what_it_is": "List of functions the system must use (e.g., load_dataset, train_rul_model, calculate_mae)",
+      "why_it_matters": "Defines what capabilities are needed to solve the problem",
+      "industrial_relevance": "Like the tools in a maintenance toolkit - you need the right tools for the job",
+      "real_world_analogy": "Just like a mechanic needs specific tools (wrench, multimeter) for different tasks, the system needs specific tools (data loader, model trainer, web surfing for information, writting ) for different scenarios"
+    },
+
+    "distraction_tools": {
+      "what_it_is": "Tools that are available but should NOT be used for this scenario",
+      "why_it_matters": "Tests if the system can ignore irrelevant options and focus on the right tools",
+      "industrial_relevance": "In real operations, you have many tools/systems available, but must choose the right ones",
+      "example": "For a bearing fault scenario, the system shouldn't use 'weather_data' or 'financial_calculator' - those are distractions"
+    },
+
+    "ground_truth": {
+      "what_it_is": "Expected correct results and validation criteria",
+      "why_it_matters": "Used to verify if the system's answers are correct and acceptable",
+      "industrial_relevance": "Like quality control standards - you need to know what 'good' looks like",
+      "validation_criteria": {
+        "rul_prediction": "Expected MAE range (e.g., 10-20 cycles), expected RMSE range, which units should be flagged as high-risk",
+        "fault_classification": "Expected accuracy (e.g., 85-95%), which fault types should be identified",
+        "cost_benefit_analysis": "Expected cost ranges for different strategies, optimal threshold values",
+        "safety_policy_evaluation": "Risk level classifications, compliance status"
+      }
+    },
+
+    "dependency_analysis": {
+      "what_it_is": "Description of the workflow - what steps must happen in what order",
+      "why_it_matters": "Shows the logical sequence: you can't predict before loading data, can't verify before predicting",
+      "industrial_relevance": "Like a maintenance workflow: inspect → diagnose → plan → execute → verify",
+      "example": "Load data → train model → predict → verify → calculate metrics → generate report"
+    }
+  },
+
+  "sme_review_questions": {
+    "feasibility_assessment": [
+      "Do these scenarios represent tasks that your operations team actually performs or would perform?",
+      "Are the questions asked in 'input_question' how your team members would actually phrase requests?",
+      "Would the outputs (RUL predictions, fault classifications, cost analyses) be useful for your daily operations?",
+      "Are the datasets representative of equipment types you work with (bearings, engines, gearboxes, motors)?"
+    ],
+    "real_world_relevance": [
+      "Have you or your team asked similar questions in the past month?",
+      "Would having automated answers to these scenarios improve your operations efficiency?",
+      "Do the scenarios cover the range of maintenance decisions you make (predictive, diagnostic, cost-benefit, safety)?",
+      "Are the complexity levels appropriate for real-world use cases?"
+    ],
+    "practical_concerns": [
+      "Are the expected accuracy ranges (MAE, RMSE, classification accuracy) realistic for your equipment?",
+      "Would the required tools/functions be available in a real industrial system?",
+      "Do the scenarios account for real-world constraints (data quality, sensor availability, operational conditions)?",
+      "Are the cost-benefit assumptions (maintenance costs, failure costs) realistic for your industry?"
+    ],
+    "improvement_suggestions": [
+      "What scenarios are missing that you encounter regularly?",
+      "What aspects of these scenarios don't match your operational reality?",
+      "What additional context or constraints should be included?",
+      "How would you modify the 'input_question' to match how your team actually communicates?"
+    ]
+  },
+
+  "scenario_types_in_industrial_context": {
+    "RUL Prediction": {
+      "real_world_use": "Operations teams use this daily to prioritize maintenance, schedule downtime, and manage spare parts inventory",
+      "who_uses_it": "Maintenance planners, operations managers, reliability engineers",
+      "business_value": "Prevents unplanned downtime, optimizes maintenance schedules, reduces costs",
+      "frequency": "Daily to weekly, depending on equipment criticality"
+    },
+    "Fault Classification": {
+      "real_world_use": "Maintenance technicians use this to diagnose problems and determine repair strategies",
+      "who_uses_it": "Maintenance technicians, diagnostic engineers, field service teams",
+      "business_value": "Faster diagnosis, correct repair procedures, reduced troubleshooting time",
+      "frequency": "Multiple times per day when equipment issues arise"
+    },
+    "Cost-Benefit Analysis": {
+      "real_world_use": "Management uses this to make maintenance investment decisions and optimize budgets",
+      "who_uses_it": "Plant/Substation managers, maintenance managers, financial analysts (FP&A), department managers/directors, vice president, senior vice president, operating supervisors",
+      "business_value": "Optimal resource allocation, cost savings, Return on Investment/Equity (ROI/ROE) justification (goes hand in hand with whether a project is capital or simply operations & maintenance (O&M), expands assets, adds business value, positive cash flow desirable but not neccessary always if non-financial benefits present",
+      "frequency": "Weekly to monthly for strategic planning, daily for critical equipment decisions (i.e. daily meetings of work orders before corrective action gets taken)"
+    },
+    "Safety/Policy Evaluation": {
+      "real_world_use": "Safety and compliance teams use this to ensure regulatory adherence and risk management, policies/procedures outlined",
+      "who_uses_it": "Safety officers, compliance managers, risk assessors",
+      "business_value": "Regulatory compliance, risk mitigation, safety assurance, government mandates, reputation impact",
+      "frequency": "Continuous monitoring, with formal reviews weekly, monthly or quarterly"
+    },
+    "Engine Health Analysis": {
+      "real_world_use": "Engineers and operators use this to interpret sensor signals and assess equipment condition",
+      "who_uses_it": "Equipment engineers, operators, condition monitoring specialists",
+      "business_value": "Early problem detection, condition-based maintenance, operational insights",
+      "frequency": "Real-time or near-real-time monitoring, with periodic deep analysis"
+    }
+  },
+
+  "validation_criteria_for_sme_review": {
+    "scenario_quality_checklist": {
+      "realistic": "Does the scenario reflect a real operational need?",
+      "actionable": "Would the output lead to a concrete maintenance action?",
+      "measurable": "Can success be objectively evaluated (via ground truth)?",
+      "representative": "Does it represent common equipment types and failure modes?",
+      "clear": "Is the input_question understandable to non-technical users?",
+      "complete": "Are all necessary tools and data available to solve it?"
+    },
+    "ground_truth_validation": {
+      "realistic_ranges": "Are expected MAE/RMSE/accuracy ranges achievable with real data?",
+      "verifiable": "Can the correct answers be determined from the dataset?",
+      "representative": "Do the expected results match what experts would expect?"
+    }
+  },
+
+  "next_steps_after_sme_review": {
+    "refinement": "Update scenarios based on SME feedback to better match real-world operations",
+    "validation": "Test scenarios with actual operational data and workflows",
+    "expansion": "Add missing scenarios identified by SMEs as common use cases",
+    "documentation": "Create operational guides for how these scenarios map to real maintenance workflows"
+  }
+}
