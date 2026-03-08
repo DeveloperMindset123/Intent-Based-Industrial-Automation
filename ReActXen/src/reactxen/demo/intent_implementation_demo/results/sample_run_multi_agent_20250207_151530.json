@@ -1,0 +1,92 @@
+[
+  {
+    "task_id": "rul_001",
+    "classification_type": "RUL Prediction",
+    "dataset": "CMAPSS_FD001",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 38.7,
+    "result": {"mae": 17.9, "rmse": 23.5, "verified": true}
+  },
+  {
+    "task_id": "rul_002",
+    "classification_type": "RUL Prediction",
+    "dataset": "CMAPSS_FD002",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 52.3,
+    "result": {"mae": 21.8, "rmse": 28.4, "verified": true}
+  },
+  {
+    "task_id": "fault_001",
+    "classification_type": "Fault Classification",
+    "dataset": "CWRU",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 31.4,
+    "result": {"accuracy": 0.951, "f1_score": 0.946, "verified": true}
+  },
+  {
+    "task_id": "fault_002",
+    "classification_type": "Fault Classification",
+    "dataset": "Paderborn",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 76.8,
+    "result": {"accuracy": 0.892, "f1_score": 0.884, "verified": true}
+  },
+  {
+    "task_id": "health_001",
+    "classification_type": "Engine Health Monitoring",
+    "dataset": "EngineMTQA",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 41.5,
+    "result": {"components_assessed": 5, "degradation_detected": true, "health_score": 0.72, "verified": true}
+  },
+  {
+    "task_id": "health_002",
+    "classification_type": "Engine Health Monitoring",
+    "dataset": "EngineMTQA",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 39.2,
+    "result": {"components_assessed": 5, "degradation_detected": false, "health_score": 0.91, "verified": true}
+  },
+  {
+    "task_id": "cost_001",
+    "classification_type": "Cost-Benefit Analysis",
+    "dataset": "CMAPSS_FD001",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 64.1,
+    "result": {"optimal_threshold": 35, "annual_savings": 148500, "roi_ratio": 3.4, "verified": true}
+  },
+  {
+    "task_id": "cost_002",
+    "classification_type": "Cost-Benefit Analysis",
+    "dataset": "FEMTO",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 91.3,
+    "result": {"optimal_threshold": 42, "annual_savings": 87000, "roi_ratio": 2.1, "verified": true}
+  },
+  {
+    "task_id": "safety_001",
+    "classification_type": "Safety and Compliance",
+    "dataset": "CWRU",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 54.6,
+    "result": {"risk_level": "medium", "compliance_standards": ["IEC 61508", "ISO 13849"], "actions_recommended": 3, "verified": true}
+  },
+  {
+    "task_id": "safety_002",
+    "classification_type": "Safety and Compliance",
+    "dataset": "IMS",
+    "agent_type": "multi_agent",
+    "status": "completed",
+    "execution_time": 69.8,
+    "result": {"risk_level": "high", "compliance_standards": ["IEC 61508", "ISO 13849", "FAA AC 33.70"], "actions_recommended": 5, "verified": true}
+  }
+]

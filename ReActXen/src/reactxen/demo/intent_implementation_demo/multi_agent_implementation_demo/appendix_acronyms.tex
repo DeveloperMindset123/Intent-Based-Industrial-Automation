@@ -1,0 +1,86 @@
+\begin{table*}[ht]
+\caption{Complete acronyms dictionary used in PHMForge benchmark scenarios. Acronyms are grouped by functional category.}
+\label{app:acronyms}
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Acronym} & \textbf{Full Form} & \textbf{Usage Context} \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Predictive Maintenance Core}}} \\
+\texttt{RUL} & Remaining Useful Life & Primary metric for predictive maintenance - predicts when equipment will fail \\
+\texttt{PHM} & Prognostics and Health Management & Broader field encompassing predictive maintenance, condition monitoring, and ... \\
+\texttt{PdM} & Predictive Maintenance & Alternative to reactive (fix after failure) and preventive (fix on schedule) ... \\
+\texttt{MAE} & Mean Absolute Error & Metric for evaluating RUL prediction accuracy \\
+\texttt{RMSE} & Root Mean Squared Error & Metric for evaluating RUL prediction accuracy, penalizes large errors more th... \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Dataset Acronyms}}} \\
+\texttt{CMAPSS} & Commercial Modular Aero-Propulsion System Simulation & Standard benchmark for RUL prediction in aerospace applications \\
+\texttt{CWRU} & Case Western Reserve University & Widely used for bearing fault classification and RUL prediction \\
+\texttt{FEMTO} & FEMTO-ST Institute & Used for RUL prediction under varying operational conditions \\
+\texttt{IMS} & Intelligent Maintenance Systems & RUL prediction with high-frequency vibration data \\
+\texttt{HUST} & Huazhong University of Science and Technology & RUL prediction and fault classification under diverse operating conditions \\
+\texttt{XJTU} & Xi'an Jiaotong University & RUL prediction and fault classification with multiple fault modes \\
+\texttt{MFPT} & Machinery Failure Prevention Technology & RUL prediction using frequency domain analysis \\
+\texttt{Mendeley} & Mendeley Data Repository & RUL prediction under non-stationary signal conditions \\
+\texttt{Paderborn} & Paderborn University & Fault classification and RUL prediction using multiple sensor modalities \\
+\texttt{UoC} & University of Cincinnati & Gearbox fault classification \\
+\texttt{GearboxUoC} & Gearbox University of Cincinnati & Gearbox component fault classification \\
+\texttt{PlanetaryPdM} & Planetary Gearbox Predictive Maintenance & Fault classification and component localization in planetary gearboxes \\
+\texttt{MAFAULDA} & MAchine FAUlt Localization and Detection Algorithm & Fault classification and localization \\
+\texttt{EngineMTQA} & Engine Multi-Task Question Answering & Testing LLM capabilities in understanding, perception, reasoning, and decisio... \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Aircraft Engine Components}}} \\
+\texttt{HPC} & High-Pressure Compressor & Common failure mode in CMAPSS dataset (HPC degradation) \\
+\texttt{LPC} & Low-Pressure Compressor & Engine component monitored in EngineMTQA scenarios \\
+\texttt{HPT} & High-Pressure Turbine & Engine component monitored in EngineMTQA scenarios \\
+\texttt{LPT} & Low-Pressure Turbine & Engine component monitored in EngineMTQA scenarios \\
+\texttt{FD} & Flight Data & CMAPSS dataset variants (FD001-FD004) \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Machine Learning Models}}} \\
+\texttt{MLP} & Multi-Layer Perceptron & Baseline model for RUL prediction and fault classification \\
+\texttt{LSTM} & Long Short-Term Memory & Time series models for RUL prediction, handles sequential sensor data \\
+\texttt{CNN} & Convolutional Neural Network & Fault classification from vibration signals, feature extraction \\
+\texttt{RNN} & Recurrent Neural Network & Time series analysis, RUL prediction \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Regulatory Standards}}} \\
+\texttt{FAA} & Federal Aviation Administration & Regulatory compliance for aircraft engine maintenance \\
+\texttt{EASA} & European Union Aviation Safety Agency & Regulatory compliance for aircraft engine maintenance in Europe \\
+\texttt{ISO} & International Organization for Standardization & Vibration and mechanical standards for equipment health assessment \\
+\texttt{ANSI} & American National Standards Institute & Vibration standards for bearing health assessment \\
+\texttt{IEC} & International Electrotechnical Commission & Standards for electric motor health assessment \\
+\texttt{NEMA} & National Electrical Manufacturers Association & Standards for electric motor health assessment \\
+\texttt{AGMA} & American Gear Manufacturers Association & Standards for gearbox health assessment \\
+\texttt{IEEE} & Institute of Electrical and Electronics Engineers & Standards for motor testing and health assessment \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Technical Acronyms}}} \\
+\texttt{JSON} & JavaScript Object Notation & Format for scenario definitions and agent outputs \\
+\texttt{API} & Application Programming Interface & Interface for accessing tools and services in the agent framework \\
+\texttt{SME} & Subject Matter Expert & Experts who validate scenarios and provide domain knowledge \\
+\texttt{QA} & Question Answering & EngineMTQA dataset format - questions about engine health \\
+\texttt{KDD} & Knowledge Discovery and Data Mining & Target conference for research paper submission \\
+\texttt{MCP} & Model Context Protocol & Referenced in MCP-Bench and MCP Universe papers \\
+\texttt{MLE} & Machine Learning Engineering & Referenced in MLE Bench paper - baseline for scenario definition \\
+\texttt{ITFormer} & Instruct Time Transformer & Related work that created EngineMTQA dataset (110K questions) \\
+\texttt{PHMBench} & Prognostics and Health Management Benchmark & Related work - created 100 industry-specific scenarios for RUL prediction \\
+\texttt{PDMBench} & Predictive Maintenance Benchmark & Source of datasets in submission096 directory \\
+\texttt{Azure} & Azure Predictive Maintenance Dataset & RUL prediction for aircraft engines under various operational conditions \\
+\texttt{ElectricMotorVibrations} & Electric Motor Vibrations Dataset & Fault classification for electric motor bearing and rotor faults \\
+\texttt{RotorBrokenBar} & Rotor Broken Bar Dataset & Fault classification for rotor bar failures in electric motors \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Data Formats}}} \\
+\texttt{CSV} & Comma-Separated Values & Format for most dataset files (e.g., CWRU\_train.csv) \\
+\texttt{TXT} & Text File & Format for CMAPSS datasets (train\_FD001.txt, test\_FD001.txt, RUL\_FD001.txt) \\
+\texttt{JSONL} & JSON Lines & Format for EngineMTQA dataset (train\_qa.jsonl, test\_qa.jsonl) \\
+\texttt{PSI} & Pounds per Square Inch & Pressure measurements in equipment (e.g., gearbox oil pressure) \\
+\texttt{RPM} & Revolutions Per Minute & Rotational speed measurements (e.g., bearing speed 600-1800 RPM) \\
+\texttt{KHz} & Kilohertz & Sampling rate measurements (e.g., 97.656 KHz sampling rate) \\
+\midrule
+\multicolumn{3}{l}{\textbf{\textit{Evaluation Metrics}}} \\
+\texttt{F1} & F1 Score & Metric for fault classification performance \\
+\texttt{Precision} & Precision & Metric for fault classification accuracy per class \\
+\texttt{Recall} & Recall (Sensitivity) & Metric for fault classification completeness per class \\
+\texttt{Accuracy} & Classification Accuracy & Overall metric for fault classification performance \\
+\bottomrule
+\end{tabular}
+\end{table*}

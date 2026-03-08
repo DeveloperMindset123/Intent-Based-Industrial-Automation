@@ -1,0 +1,284 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\froman\fcharset0 Times-Roman;
+\f3\froman\fcharset0 Times-Bold;\f4\froman\fcharset0 TimesNewRomanPS-BoldMT;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\csgray\c0;}
+\margl1440\margr1440\vieww24000\viewh18860\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b\fs24 \cf0 Reminder: 
+\f1\b0 Don\'92t ask question just for the sake of asking questions \'97> ask intelligent question similar to the ReAct paradigm when it comes to agents, dig deep by breaking down the abstract problem or rather anything complex into series of sub-problems, and use those as building blocks to arrive at the answer.\
+
+\f0\b \
+Notes regarding the vision paper titled : 
+\f1\b0 Building AI agents for autonomous clouds, challenges and design principles\
+\
+
+\f0\b Coding for long hours? 
+\f1\b0 I keep viewing writting code as a singular activity, but it doesn\'92t have to be, can be paired with youtube/tv shows/etc. playing on phone in the background, and after around 1-1.5 hours of this, I can switch back to regular focus without getting sidetracked (only distinguishment is that the device that plays such content needs to be seperate from primary work environment) \'97> This is workaround to avoid procrasination and solution to not get sidetracked unneccessarily, considering this field demands ideally all time/energy into it to develop those muscles and continue fighting through the fatigue and once the video is done, I can just turn it off using the power button.\
+- Drinking coffee \'97> not the dogshit instant coffee, but real coffee from store/mcdonalds, keeps me going for 90 minutes - 120 minutes, that is the initial time that allows me to go from discomfort/distraction -> state of flow (but timing is also important, avoid popping caffeine pills first thing after waking up, wait it out in terms of caffeine intake before continuing) \'97> and also make sure to hit the gym to fully burn off the caffeine later at nighttime whenever possible.\
+- researchers must learn to dive-deep, LLMs/overdependence leads to shallow understanding \'97> painstakingly spending long hours \'97> the traditional way, to truly gain that depth of knowledge is fundamental in this case \'97> AI based search engine is fine, try to minimize music usage, music on one ear initial timeframe of fatigue will suffice, then shift to no-music and quiet and hands on approach.\
+- reading tasks and problem solving ? avoid headphones : use headphones if tasks don\'92t require depth of focus.\
+- During daytime, when getting started with work, would be best to work standing up in the elevated position, and throughout the day alternating between a standing and seated posture \'97> while door stays open, sitting can lead to sluggishness and distraction \'97> so start alternating between them \'97> the key to working long hours within a given day without being distracted is simple \'97> delay the morning coffee intake, quickly get started with work, and alternate between seated and standing postures to maximize producitivity gains (use the relevant books to elevate to a comfortable position \'97> this makes better utilization of physical books overall.\
+- it\'92s okay to use AI to get over difficult hurdle or when there\'92s simply not enough time.   \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 - Relying on cursor, in a lazy way, made me lose control over the codebase completely \'97> now I can ask cursor to simplify things for me for the sake of time \'97> but that won\'92t be worth it \'97> instead, i can utilize the generative AI feature (ask it questions, and get an idea in case there\'92s something kind of logic, of whose syntax I am not entirely sure of \'97> but it\'92s import to understand what kind of changes to the codebase is needed moving forward)\
+- I also need to figure out why not all the data is being loaded \'97> essentially agentic means I don\'92t have control over my code \'97> so better to write my own code, and using LLMs for logical assistance, and transferring over the knowledge from the research paper \'97> minimize LLM usage however where possible (don\'92t even copy paste), try to see how something has been implemented and implement it yourself.\
+- It\'92s fine to derive insights through the chat feature, that codebase contextual knowledge is very helpful, but relying on it to write code for me is a nogo, way too much unneccessary code is written, for such a simple problem, overengineering something and premature optimization is not neccessary when around 20-50 lines of code is sufficient for majority of what i am trying to achieve, and building on top of that following that.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Some core action items: (minimize AI dependance, utilize own knowledge base for it, yes, it will be time-consuming, but it will be worth it long run)
+\f0\b \
+
+\f1\b0 - understand in-depth what each of the research paper is advocating for\
+- review and simplify the AI generated code within cursor, to get everything to work and run as intended (review the notes provided by Dhaval and Joe)\
+- Review how ReActXen framework actually works more in-depth\
+\
+\
+
+\f0\b Research paper reference 1 : https://arxiv.org/html/2407.12165v1#bib.bib29
+\f1\b0 \
+ReAct:\
+- Popular LLM paradigm \'97> thought action traces that leverages LLM\'92s planning and execution capabilities.\
+- Tested in various platforms real world cloud outages scenarios (i.e. misconfigured ports), and noticed that the agentic framework, due to the complexity of the problem, would take upwards of 10 steps to solve the problem at hand that it encounters.\
+\
+
+\f0\b SWE-Agent : Agent-computer interface enabled software engineering\
+- 
+\f1\b0 The idea here is to develop a software engineer based agent\
+- The idea here is to determine \'97> similar to how human benefits from visual IDEs like VSCode, could LM agents benefit similarly if they had access to filesystem, terminal, abillity to navigate across repos, search files, edit files, correct errors involving syntax and linting by itself \'97> similar to human computer interface, the development focuses around Agent Computer Interface (ACI for short, and will be addressed as so moving forward)\
+swe_agent = ACI + LM\
+- Actions should be simple and easy to understand \'97> this design principle falls on me to identify and correct as needed.\
+- Actions also needs to be compact and efficient in terms of what it\'92s capable of.\
+- It is best to keep the agent context concise and informative, many language model\'92s context window is too small and that is problematic.\
+- Runs submitted relatively quickly tends to yield greater success rate \'97> what does this mean? \'97> It means agents that are able to identify and arrive at a solution with fewer steps is typically more successful.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\qr\partightenfactor0
+\cf0 - as joe mentioned, majority of the failures made by agents are due to how the agent has been implemented \'97> meaning the underlying issue is within the code itself, rather than the functional behavior/design flaw of the agent \'97> the end responsibility falls with the human itself.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 	- successful runs are cheaper than unsuccessful ones \'97> my current implementation, which uses too many steps, is therefore unsuccessful.\
+\
+
+\f0\b Understanding the importance of ReAct:\
+- 
+\f1\b0 ReAct overcomes common issues involving hallucination and error propagation \'97> when it comes to chain-of-thought style reasoning.\
+- The tight synergy between Acting and Reasoning allows humans to quickly understand tasks \'97> proper utilization of the tools that it has been provided.\
+\'97> What differentiates Chain-of-Thought vs ReAct is that Chain-of-Thought consists of reasoning only, without any kind of actions present.\
+\'97> also, we want to avoid veering to the side of Action only, meaning independently working in terms of Action or Reasoning in isolation isn\'92t ideal \'97> ReAct is the paradigm that combines both Reasoning and Action.\
+- The process is broken down into 3 steps \'97> Think, Act and Observe (environment of the model is what enables observation).\
+\
+
+\f0\b Breakdown of 4 types of prompting methods present: (think of them as 4 paradigms present)\
+1. 
+\f1\b0 standard \'97> This is what traditional Generative AI models do \'97> token based prediction enabled via transformer architecture.\
+2. Chain-of-thought \'97> Consists of reason only \'97> Also not ideal in this case.\
+3. Act-only \'97> Provides output solely based on actions, without thinking and observing (similar to how soldiers are trained in real world, to just follow orders without questioning anything)\
+4. ReAct (reason + act) \'97> This is true intelligence, before taking action, assessing whether that particular action needs to be taken.\
+\
+
+\f0\b Understanding what PDMBench is advocating for, and what it is I am attempting to develop based on the provided dataset:\
+- 
+\f1\b0 Before mentioning fault classification, it is important to understand what fault classification is to begin with:\
+\'97 understadning what fault classificaton consists of    6\
+\
+
+\f0\b What changes needs to be made moving forward:
+\f1\b0 \
+
+\f0\b I need to review and implement the approach, and simplify a lot of the overly abstracted concepts present within the current codebase:\
+For starters, I need to re-evaluate the tools and agents that has been defined
+\f1\b0  \'97> I already know how watsonx and huggingface works, and I know I should limit the number of sub-agents being used \'97> no need to make things overly fancy\
+\
+\
+
+\f0\b Given that I have downloaded all the relevant dataset \'97> next step is to identify potential relationships that might be present, and therefore, need to look for the following in this case:\
+\
+\'97> outliers, duplicate records, identify data types, split between train, test and validation (the test in this case will be validation, and i will use the standard 75% for training, with 25% for testing and validation)\
+\'97> Given that I need to have some kind of distinguishment between training and testing \'97> need to split up the dataset for testing to intentionally hide specific columns, predict it and return the output based on that\
+\
+Note some of the core concepts mentioned across the paper that might be relevant in this case:\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f2\b0 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Why Not Use Multi-Modal Architectures Directly? PDMBENCH prioritizes reproducibility, generalizability, and fair comparison. Many multimodal deep learning models make strong assumptions about modality structure (e.g., aligned sampling, explicit modality priors), which do not hold across the 14 datasets we benchmark. Moreover, such models often require custom fusion schemes and per-dataset tuning, which undermines the goal of standardized evaluation. By converting all datasets into a shared representational form, we decouple benchmarking from modality-specific model engineering, allowing us to fairly assess model robustness across varying sensor configurations without conflating performance with fusion strategy. \
+\
+Why the Unified Representation Remains Modality-Agnostic. The unified representation x \uc0\u8712  RM\'d7L treats all sensor streams as equal contributors to the input segment. Because the pipeline applies the same preprocessing logic (e.g., z-normalization, fixed-window segmentation) across all modalities, no sensor type is privileged in model input. Models trained on this representation learn to extract features based on the predictive value of each modality for the target task (CLF or RUL), not based on arbitrary encoding order or signal type. This approach enables flexible scalability: new modalities can be added to the representation by extending the modality dimension M, without changing the model or retraining fusion components. It also avoids hand-tuned feature hierarchies that might bias models toward modalities with high signal-to-noise ratios or clearer patterns (e.g., vibration over temperature). The modality-agnostic nature of the segment ensures that performance gains are attributed to true cross-modal learning and not to structural biases in the model or pipeline.\
+\
+
+\f3\b This is something that needs to be discussed with Dhaval more extensively
+\f2\b0 \
+Core information about the dataset \'97> stated within the paper itself \'97> can be used to derive dataset metadata in this case:\
+- Bearings are the most common when it comes to likelihood of failing in terms of rotating machinery \'97> 
+\f3\b meaning \'97> 
+\f2\b0 This is the primary choice of asset being used.\
+- Therefore, for majority of predicitive maintenance studies \'97> They are used often.\
+\
+\
+Breakdown of the metadata can be found within vscode itself (which I wrote in JSON format) based on findings\
+
+\f3\b Some insights on the 14 seperate datasets:\
+-
+\f2\b0  Some of the datasets are better suited for RUL estimation and fault classification, has been explicitly stated in the PDMBench paper.\
+- change of idea : I was too focused on making things dynamic, but if I want to achieve good results with the models, and ensure some degree to of non-determinism \'97> I can still let the model choose the logic behind assigning model_id from huggingface catalog, but the logic for splitting training and testing and validation data for those models, is something best determined by humans.\
+- In terms of dynamic tool writing, also leads to degration of performance as well \'97> it is much better if we write those tools logic, and the cursor implementation led to an over-engineered solution.\
+- Given that the dataset is already present, which took a bit of time to execute to get everything running \'97> but I can just have it be pre-loaded using pandas since there\'92s a relative path it\'92s pointing to, and have it be exposed as global variable to be used by the model/agent.\
+\
+\
+
+\f3\b Role of bearings within industrial settings:\
+- allows for the smooth rotation of equipments\
+- horizontal vibration \'97> rotation perpendicular to the shaft\'92s rotation\
+- vertical vibration \'97> measurement of rotation along the same orientation and shaft\'92s rotation\
+- The root agent should have the metadata information regarding the dataset\
+Why bearing and why vibration?\
+- Vibration from sensor data helps with root cause analysis, performing predictive maintenance alongside early fault detection.\
+\
+\'97> Breakdown of the dataset \'97> There are 14 datasets, 10 of which is related to bearings, 2 of which are related to Gearbox, and remaining is intended for multi-component systems.\
+\
+Some more questions now that I have understood to a certain extent what the different datasets represent.\
+1. What kind of equipments are bearings used on?\
+2. Is the dataset split into high temporal and low temporal?\
+3. What are the different types of operating conditions? For CMAPSS, the operating condition was just sea level.\
+4. How many different types of machine learning models needs to be developed for this? What kind of functionalities and features should they have? Should I be using huggingface to derive them?\
+5. Should the aircraft RUL be included? yes, single operational condition \'97> this is focused on RUL \'97> talk to your factory paper, make sure to cite it.\
+6. We can unify it \'97> Other than that, \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f4\fs28\fsmilli14040 \cf3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 review this paper \'97> PHM-Bench: A Domain-Specific Benchmarking Framework for Systematic\
+Evaluation of Large Models in Prognostics and Health Management \'97> provides some degree of agentic implementation
+\f3\fs24 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \
+\pard\pardeftab720\partightenfactor0
+\cf0 Define metrics and parameters:\
+- review table 3 to see different scenarios\
+- table 4 shows all the open-source, there is a lack of unification\
+- they are utilizing the coding approach to generate the codew\
+- first verify functionality, then extensibillity, then code quality variation \
+- understand what their work is \'97> we can reuse the scenarios \'97> we can learn something from there as well\
+- prompt template, sensor data and constraint \'97> needed \'97> when making a plan, certain constraints needs to be met\
+- agent has to work on input -> product some output\
+- certain models optimized for certain tasks\
+- from onward \'97> take these kind of papers, but learn it in-depth\
+- at the end, they are trying to predict good RUL, determine how they created scenarios\
+\
+In terms of the datasets\'97> we can combine the dataset from this paper, and understand what type of scenarios they created \'97> don\'92t create any random scenarios\
+\
+Focus on successful implementation of RUL -> Fault Diagnostics (primary 2 focuses)\
+- Safety and Cost-benefit secondary, simplified.\
+\
+2 action items:\
+- take a deep look at this paper, we have 4 paper \'97> agentic\
+\
+Another paper \'97> 
+\f2\b0 ITFormer: Bridging Time Series and Natural Language for Multi-Modal QA with Large-Scale Multitask Dataset \'97> talks about engine dataset\
+- NCMAPSS \'97> ENGINEMT-QA\
+- Exploration -> Cherrypicking -> Took Some dataset -> Related work is utilizing these datasets (PHMBench for example)\
+\
+Action items:\
+- Write a nice narrative -> collected industry focused dataset\
+- How recent work are leveraging these datasets?\
+- One work is PHMBench, people building benchmark using this dataset, RUL benchmark specifically\
+- ITFormer \'97> wanted to use multi-modal testing of LLMs or PHMBench uses LLM is useful for writting good RUL python code\
+- ITFormer is more about testing multimodal-LLM\
+- survey recent related work \'97> for example, each of these work \'97> what their unique contributions in terms of community\
+- For example, PHMBench took initiative to define industry specific scenarios \'97> since they created 100 scenarios \'97> This is a contribution to community\
+- Likewise, ITFormer \'97> contributed LLM generated \'97> Human didn\'92t generate those scenarios \'97> 10K EngineMT-QA\
+	- review this paper \'97> They did not created open-ended, it\'92s deterministic, meaning answer must be within the data provided\
+	- closeend = answer is given and need to make a proper selection\
+	- openend = can throw anything\
+- this is how related work section is written \'97> very interesting problem, this is the unique contribution, however there are gaps \'97> Then I drill into my stuff\
+- then I have to mention proper research work\
+- These 3 papers are good related work \'97> and can help us with\'85\
+1. writting a good set of scenarios\
+2. performance metrics, every scenario is associated with certain performance \'97> multiple choice is within fixed set of response\
+3. architecture of agentic point of view \'97> what the innovations that were being made and some gaps that is present \'97> if we do agentic, what the pros and cons \'97> either for them or us\
+4. standardization of terminologies \'97> can standardize tools, agents, sub-agents, tasks, different paradigms of agents, RUL, fault-classification, structure of QA entry, human-in-the-loop\
+5. Some questions can be multi-turn vs single-turn (multi-shot vs single shot) \'97> language involved, similar to a template \'97> normally when we write a scenario, we write things more open-ended, in this case, it is pre-defined.\
+6. we narrowed down, cannot just create Question and Answer \'97> Scenario creation is like a workflow \'97> in which part of the process did I take help from an expert.\
+	- This is where the difference comes \'97> there is one approach \'97> I know there\'92s list of APIs \'97> I can connect multiple APIs together in some sort of workflow, if I write this way a problem statement and this problem statement may require connecting sequentially the APIs \'97> something people do for scenario writting.\
+	- assume we went through the expert evaluation -> they qualititatively validated these questions made sense \'97> assume that these scenarios are expert-vetted\
+\
+3 methodologies used for scenarios:\
+	1. we take help from experts to draft scenarios\
+	2. we use experts to validate the scenarios\
+	3. no experts were used for draft or validation, challenged experts to solve the problems\
+\
+- we have to take help of an expert one way or another \'97> either to validate it or not \'97> experts know how to solve the problem.\
+- we need to look at those questions carefully, but in the meantime, I can learn more on our end\
+\
+- our goal is to write x number of scenarios, which are spread across wide number of assets, scenarios will fall into certain categories of tasks (RUL vs fault-classification), and these scenarios are challenging for the agent responsible for solving the problem, and they need to be QA format, keeping things a combination input/output, classified as open-ended and QA format will be close-ended\
+- ITFormer paper \'97> irrespective of whether questions are open or close ended, what aspect of LLM is being tested? This is also something to consider when writting scenarios \'97> understanding the objective is crucial.\
+	- whenever we create a scenario \'97> we make certain calls \'97> for example, a scenario to check if LLM can write code or not \'97> ITFormer checking whether time-series semantic and utilize the internal knowledge to do some decision making?\
+	- not just LLM for generating code, but also deriving insights \'97> IT former, point out gaps and address those gaps in my research \'97> we can do video recording but it leaves a lot of open ended gaps \'97> consolidated assets focused on RUL and Fault-classification \'97> start writing the paper on overleaf \'97> for related work and papre writting, I can do the paper writting and code in parallel.\
+	- a lot of explortaion work may not yield results \'97> one question is, people build benchmark to create leaderboard \'97> leaderboard can be for a model (GPT, llama, DeepSeek, Gemini, Granite)\
+	- leaderboard to compare methods (XGBoost, Random Forest, etc.), efficiency (i.e. RUL prediction optimal), model performance\
+	- understand ITFormer very carefully\
+	- huggingface transformer, terminology may differ\
+	- might not go into the technical detail, but well understand technical point of view to quantify the business impact around related work\
+
+\f3\b 	- Think of these papers as competitors, what my contribution is compared to what already exists
+\fs26  and how they are being leveraged to accelerate \'97> but there\'92s limitations and overcoming those limitations with my own work \'97> they become foundation to build on top\
+(i.e. ITFormer \'97> created dataset for a single asset that can be reutilized, and these questions can be utilized), leverage the SMEs to review the 110K questions, the SMEs would like to utilize, as in how and where we can leverage their work to enhance our work\
+\
+Example of work leverage:\
+- Suppose I am working on a wind turbine, do I need to create the QA to create scenarios or use engine dataset for in-context example to create question-answer?\
+- Opportunity ? 110K is a big example \'97> we can use that dataset to even come up with new set of questions? Or similar set of questions for wind turbine or any other asset? bringing scalability \'97> This is pattern matching (then that becomes my contribution), just pattern matching is not sufficient \'97> internal SMEs may validate some of these things \'97> these are the patterns we typically utilize to test the LLMs\
+- Instead of going to someone for aerospace, if we can validate it with internal SMEs, we don\'92t really need ground truth, it\'92s more so about pattern matching\
+- Things like Temporal perception and understanding, end-users doesn\'92t really care, it\'92s like our internal idea, they only want to know if it\'92s relevant to their day to day work.\
+- Then we have a good set of template library, if we vet our SMEs \'97> Something like that, scenario cannot be too many, need to be PHMBench\
+- Identify some of the routinely used patterns \'97> expert vetted \'97> becomes core part of systems \'97> for asset class.
+\fs24 \
+- 3 more things left \'97> [study the MCP bench, MCP universe, MLE bench]
+\f2\b0 \
+- sometimes it is okay to write too much coding \'97> may not crisply articulate problem being solved.\
+- those 3 papers aren\'92t from technical point of view \'97> they have value on how to define scenarios \'97> we only need to look at how they instrumented scenarios\
+	- MLE Bench is a good example of this, they handcrafted 75 scenarios only\
+		- some focused on regression, text classification, prediction, etc.\
+		- the way they defined scenarios\
+		- it is not about solving the problem, but rather about defining the problem \'97> that is going to be my baseline, my baseline should be MLEBench \'97> It can be used to solve the problem\
+		- if we follow their style of writing scenarios, it will be consolidated version of MLEBench scenarios, input/output and question/answer format\
+		- once we declare our objective, performance becomes 100% correct \'97> Right now, assemble set of scenarios for RUL and fault-classification\
+			- then, collect the relevant technologies and use those technologies to solve the problem\
+				- then we can see how the performance is coming up\
+\
+\
+
+\f3\b effort priotorization: (expectations)\
+1. standardize the related work \'97> start writting a good related work based on the info he provided\
+	- a lot of people build questions and their format isn\'92t standardized, and our questions has rules \'97> common in industrial operations\
+	- our questions has a rule, MCQ is not a new thing, but inside the MCQ, the rules that we have isn\'92t something other people have tested, and that\'92s how we stand out.\
+	- continously write our related work and our approach in parallel \'97> both have to go side by side, it\'92s just a writeup\
+
+\f2\b0 \
+
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+2. Scenario writing is one of the key contributions. Are we claiming that we are writting new set of scenarios for certain tasks \'97> for example, for AssetOpsBench, it doesn\'92t have scenarios for RUL \'97> But whenever we write research paper, there needs to be 3 contributions \'97> contributions != implementation, what\'92s novel is the contribution.\
+	- do some due diligence in this domain \'97> our objective is to get the paper out for KDD, due in February 10, KDD has 3 tracks \'97> research, data science and benchmark \'97> they have industry track (if system was deployed, SMEs tested it and provided feedback)\
+	- we need to figure out where we fall based on and the implementation based on the updated dataset, and depending on contrbution where we are going \'97> review item\
+	- one thing is to push that work out of the review, irrespective of where we submit, it needs to be submitted by February, very important to get the feedback and we work post-review.\
+	- keep thinking about this\
+	- a lot of our work falls within benchmark\
+\
+\
+3. Put the BibTex for the all the papers immediately \'97> ITFormer included\
+\
+4. Communicate plan offline \'97> next week when we meet, we should chew all this related work, and have better understanding of how our work is differentiating from the existing work and how they are being leveraged, and how do we define as baseline \'97> MLEBench should be baseline? Nobody has done this kind of thinking \'97> So, sometimes people can appreciate this work, we took MLEBench and extended for our set of scenarios, we took MCPBench and extended it based on our scenarios \
+\
+5. We have significantly narrowed down, keep things limited to 10 set of papers \'97> baseline to keep things standardized \'97> These 10 papers lets us crisply create the paper \'97> what set of images and diagrams that are present.\
+\
+\
+
+\fs48 ITFormer Notes Breakdown:\
+
+\fs36 What IT Former stands for (acronym wise):\
+
+\f1\b0\fs24 - ITFormer = instruct Time Transformer\
+- New framework, that combines time series encoders with frozen LLMs.\
+	- but this raises 2 questions \'97> what is time series encoders and what is frozen LLMs?\
+- The purpose of time series encoders is to convert time-ordered data into machine readable format \'97> This leads to the question: what is the relationship between time series data and time ordered data? Rather, what is the relation between the two?\
+		- Time series data is a specialized subset of time-ordered data. The key differentiator between time series data and time ordered data is that time series data, the order of the data points matter \'97> due to drawing analysis/correlation between such data points in different times.\
+			- This correlation, used interchageably as \'93autocorrelation\'94, represents a form of statistical relationship of a variable with it\'92s past values.\
+		- On the other hand, a frozen LLM are LLMs trained on a set of frozen parameters with the intention of keeping knowledge intact, prevent model degradation that typically occurs over time under natural constraints.\
+		- When it comes to being used together, time series encoders are used to prepare frozen data in order to ensure it works together with frozen LLM \'97> allows for specific finetuned LLM to make generalizations and enhanced reasoning specialized for forecasting and question answering format, without need for extensive retraining.}

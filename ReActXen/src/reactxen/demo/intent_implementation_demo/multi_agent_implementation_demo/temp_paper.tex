@@ -1,0 +1,80 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+
+% For better table formatting
+\usepackage{booktabs}
+\usepackage{array}
+
+% For better list formatting
+\usepackage{enumitem}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Scenarios: Expert-Vetted Multi-Asset and Multi-Task Predictive Maintenance Evaluation}
+
+\author{Research Team}
+
+\maketitle
+
+% This is the main section of interest here
+\section{Scenario Design and Generation}
+
+Our benchmark extends MLE-Bench's \cite{patil2024mlebench} 75-task framework into the industrial predictive maintenance domain, creating 75 expert-vetted scenarios that test multi-asset and multi-task agentic capabilities. While MLE-Bench evaluates general ML engineering skills (code generation, model training, pipeline construction), our scenarios evaluate domain-specific maintenance decision-making across five task types: RUL Prediction (15 scenarios), Fault Classification (15 scenarios), Cost-Benefit Analysis (5 scenarios), Safety/Policy Evaluation (10 scenarios), and Engine Health Analysis (30 scenarios). This extension represents both an application domain shift (from general ML to industrial maintenance) and a technical contribution in tool design and multi-agent orchestration for domain-specific workflows.
+
+\subsection{Why Expert-Vetted Scenarios Matter for LLM Evaluation}
+
+Unlike MLE-Bench's curated Kaggle competitions (which are self-contained ML tasks) or ITFormer's \cite{lei2024itformer} LLM-generated questions, industrial maintenance scenarios require domain expertise to ensure realism and operational relevance. LLMs struggle with domain-specific knowledge in three critical ways that make expert validation essential:
+
+\textbf{Domain Knowledge Gaps}: LLMs trained on general text lack deep industrial maintenance expertise. For example, an LLM might generate a cost-benefit scenario using unrealistic labor overhead rates (e.g., 50\% instead of industry-standard 160-200\%), or miss critical safety considerations (e.g., failing to account for NERC/FERC compliance requirements for power systems). Without SME validation, scenarios may be technically valid but operationally irrelevant—evaluating agents on such scenarios provides little confidence in real-world deployment.
+
+\textbf{Regulatory and Safety Complexity}: Industrial maintenance involves complex regulatory frameworks (FAA, EASA, OSHA, NERC, FERC) and safety protocols that LLMs cannot reliably generate without expert input. For instance, an LLM-generated safety scenario might check FAA compliance but miss NERC reliability standards for power equipment, or generate risk classifications (low/medium/high) without understanding that industrial operations require a fourth level (critical) for catastrophic failure scenarios. Our SME reviewers (Operations Manager and Domain Expert) ensure scenarios accurately reflect regulatory requirements and safety protocols used in actual operations.
+
+\textbf{Operational Reality vs. Theoretical Correctness}: LLMs can generate scenarios that are mathematically correct but operationally unrealistic. For example, an LLM might create a cost-benefit scenario assuming all maintenance can be scheduled during planned downtime, missing the reality that critical equipment requires 24/7 operation with minimal downtime windows. Our SME validation ensures scenarios reflect actual operational constraints: equipment state influences costs (degraded equipment requires more extensive repairs), non-operational equipment represents both financial liability and safety risk, and maintenance decisions must account for production schedules, spare parts availability, and personnel constraints.
+
+To address these limitations, we invested 396 hours of expert validation (\$63,360) across a 3-person team: Predictive Maintenance Engineer (200h for technical accuracy), Operations Manager SME (100h for operational relevance), and Domain Expert SME (96h for regulatory compliance). This validation process ensures scenarios test capabilities that matter for real-world deployment, not just theoretical correctness.
+
+\subsection{Scenario Design Logic: Multi-Asset and Multi-Task Coverage}
+
+Our scenarios are systematically designed to test agent generalization across assets and task types, following design principles that only domain experts can provide. We organize scenarios along two key dimensions:
+
+\textbf{Multi-Asset Coverage}: Scenarios test cross-asset generalization, requiring agents to adapt maintenance strategies across different equipment types. For example, RUL prediction scenarios span aircraft engines (CMAPSS FD001-FD004), bearings (CWRU, FEMTO, IMS, HUST, XJTU, MFPT, Mendeley, Paderborn), electric motors (ElectricMotorVibrations, RotorBrokenBar), and gearboxes (PlanetaryPdM, GearboxUoC). This multi-asset design tests whether agents can transfer learning across equipment types—a critical capability for industrial deployment where maintenance teams manage diverse equipment fleets. We select representative assets from each category: for bearings, we include CWRU (standard fault types), FEMTO (operational scenarios), IMS (high temporal resolution), and Paderborn (multimodal sensors) to test different aspects of bearing maintenance.
+
+\textbf{Multi-Task Complexity}: Scenarios test agents' abilities to orchestrate multiple maintenance task types within single workflows. For instance, integrated scenarios combine RUL Prediction → Cost-Benefit Analysis → Safety Evaluation, requiring agents to coordinate specialized sub-agents and synthesize outputs across task boundaries. This multi-task design reflects real-world maintenance workflows where operations teams need both predictions (when will it fail?) and decisions (is it worth fixing? is it safe to operate?).
+
+\textbf{Temporal and Complexity Dimensions}: Fault Classification scenarios emphasize temporal span analysis (detecting fault progression over time), while RUL Prediction scenarios emphasize multi-asset comparison (ranking risk across equipment fleets). Cost-Benefit Analysis scenarios test multi-objective optimization (balancing cost (labor and non-labor), downtime, and safety), while Safety/Policy Evaluation scenarios test regulatory knowledge breadth (FAA, EASA, OSHA, NERC, FERC, ISO, ANSI, IEC, NEMA, AGMA, IEEE). This systematic coverage ensures agents are evaluated across the full spectrum of maintenance decision-making, not just isolated technical tasks.
+
+\subsection{Task Type Distribution and Examples}
+
+Our 75 scenarios are distributed across five task types, each designed to test specific agentic capabilities:
+
+\begin{itemize}
+    \item \textbf{RUL Prediction} (15 scenarios): Multi-asset scenarios testing agents' abilities to predict remaining useful life across diverse equipment types (aircraft engines, bearings, motors, gearboxes). Example: "I'm managing a fleet of aircraft engines and need to know which ones are running on fumes" (CMAPSS FD001) requires agents to predict RUL for all test units, verify against ground truth, and then select the assets that will have immediate failures—for instance, picking 4 critical units out of 20 that require urgent maintenance attention. This selection task tests both prediction accuracy and actionable prioritization, requiring agents to rank and choose from a larger asset pool based on failure risk.
+    
+    \item \textbf{Fault Classification} (15 scenarios): Temporal span scenarios testing agents' abilities to classify fault types and severity levels across different equipment and operating conditions. Example: CWRU bearing fault classification requires distinguishing inner race, outer race, and ball race defects—testing diagnostic capabilities essential for repair planning.
+    
+    \item \textbf{Cost-Benefit Analysis} (5 scenarios): Multi-objective scenarios testing agents' abilities to optimize maintenance strategies by comparing preventive vs. reactive costs, accounting for labor (with overhead), non-labor costs, equipment state, and safety implications. Example: CMAPSS FD001 cost-benefit scenario requires calculating maintenance costs, failure costs, identifying optimal thresholds, and generating prioritized maintenance lists—testing business decision-making beyond technical predictions.
+    
+    \item \textbf{Safety/Policy Evaluation} (10 scenarios): Regulatory knowledge scenarios testing agents' abilities to assess safety risks and check compliance with multiple frameworks (FAA, EASA, OSHA, NERC, FERC, ISO, ANSI, IEC, NEMA, AGMA, IEEE), including cybersecurity and physical security considerations. Example: CMAPSS FD001 safety scenario requires identifying high-risk engines (RUL < 20 cycles), assessing catastrophic failure risks, checking FAA/EASA compliance, and generating safety recommendations with four-level risk classifications (low, medium, high, critical).
+    
+    \item \textbf{Engine Health Analysis} (30 scenarios): Cognitive stage scenarios integrating EngineMTQA dataset \cite{lei2024itformer} into agentic workflows, testing agents across four stages: Understanding (open-ended signal interpretation), Perception (closed-ended component health detection), Reasoning (closed-ended trend prediction), and Decision-Making (open-ended maintenance planning).
+\end{itemize}
+
+\subsection{Unique Contributions: New Task Types and Integrated Workflows}
+
+Our scenarios introduce two task types absent from existing benchmarks: \textbf{Safety/Policy Evaluation} and \textbf{Cost-Benefit Analysis}. These task types address critical industrial needs that existing benchmarks (MLE-Bench, MCP-Bench \cite{wang2025mcpbench}, MCP Universe \cite{luo2025mcpuniverse}) do not cover. Safety scenarios require agents to assess regulatory compliance and generate actionable safety protocols—capabilities essential for industrial deployment but not tested in general ML engineering benchmarks. Cost-Benefit scenarios require agents to optimize maintenance strategies considering labor costs, equipment state, safety implications, and budget forecasting—business decision-making that goes beyond technical ML tasks.
+
+Additionally, our scenarios uniquely combine multiple task types in integrated workflows (e.g., RUL Prediction → Cost-Benefit Analysis → Safety Evaluation), testing agents' abilities to orchestrate complex maintenance decision processes. This addresses a critical limitation: real-world maintenance requires coordinating predictions, cost analysis, and safety assessment—not isolated task evaluation. By testing integrated workflows, we evaluate whether agents can handle the complexity of actual maintenance operations, not just individual technical tasks.
+
+\textit{Detailed scenario specifications, validation criteria, and industrial relevance mappings are provided in the appendix.} [NOTE: haven't done this yet]
+
+\end{document}

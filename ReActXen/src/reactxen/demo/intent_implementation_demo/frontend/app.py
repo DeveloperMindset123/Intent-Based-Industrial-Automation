@@ -1,6 +1,7 @@
 """PHMForge Benchmark Dashboard — Streamlit application."""
 
 import json
+import time
 from pathlib import Path
 from datetime import datetime
 
@@ -12,6 +13,8 @@ import plotly.graph_objects as go
 BASE_DIR = Path(__file__).parent.parent
 RESULTS_DIR = BASE_DIR / "results"
 SCENARIOS_DIR = BASE_DIR / "scenarios"
+FRONTEND_DIR = Path(__file__).parent
+TRAJECTORIES_DIR = RESULTS_DIR / "trajectories"
 
 # Category color map
 CATEGORY_COLORS = {
@@ -62,6 +65,28 @@ def load_run_results() -> list[dict]:
                     item["_source_file"] = f.name
                 results.extend(data)
     return results
+
+
+@st.cache_data
+def load_tools_inventory() -> dict | None:
+    """Load tool inventory for Tool Explorer."""
+    inv_file = FRONTEND_DIR / "tools_inventory.json"
+    if not inv_file.exists():
+        return None
+    with open(inv_file, "r") as f:
+        return json.load(f)
+
+
+@st.cache_data
+def load_trajectories() -> dict[str, dict]:
+    """Load all trajectory replay files."""
+    trajectories = {}
+    if not TRAJECTORIES_DIR.exists():
+        return trajectories
+    for f in sorted(TRAJECTORIES_DIR.glob("trajectory_*.json")):
+        with open(f, "r") as fh:
+            trajectories[f.stem] = json.load(fh)
+    return trajectories
 
 
 def scenarios_to_df(scenarios: list[dict]) -> pd.DataFrame:
@@ -122,6 +147,8 @@ st.caption("Intent-Based Industrial Automation | 75 Scenarios | 5 Categories | K
 scenarios = load_scenarios()
 paper_data = load_paper_results()
 run_results = load_run_results()
+tools_inventory = load_tools_inventory()
+trajectories = load_trajectories()
 scenario_df = scenarios_to_df(scenarios) if scenarios else pd.DataFrame()
 paper_df = paper_results_to_df(paper_data) if paper_data else pd.DataFrame()
 
@@ -181,12 +208,14 @@ else:
 # Tabs
 # ---------------------------------------------------------------------------
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Overview",
     "Scenarios",
     "Benchmark Results",
     "Model Comparison",
     "Run History",
+    "Tool Explorer",
+    "Playground",
 ])
 
 # ---- Tab 1: Overview ----
@@ -524,7 +553,7 @@ with tab4:
     else:
         st.info("No paper results available for comparison.")
 
-# ---- Tab 5: Run History ----
+# ---- Tab 5: Run History (Enhanced) ----
 with tab5:
     st.header("Run History")
 
@@ -541,7 +570,85 @@ with tab5:
             }
             for r in run_results
         ])
-        st.dataframe(run_df, use_container_width=True, height=400)
+
+        # Summary metrics row
+        st.subheader("Summary")
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Total Runs", len(run_df))
+        completed_count = len(run_df[run_df["status"] == "completed"])
+        m2.metric("Completed", completed_count)
+        failed_count = len(run_df[run_df["status"] == "failed"])
+        m3.metric("Failed", failed_count)
+        avg_time = run_df[run_df["execution_time"] > 0]["execution_time"].mean()
+        m4.metric("Avg Execution Time", f"{avg_time:.1f}s" if pd.notna(avg_time) else "N/A")
+
+        # Status filter
+        status_filter = st.radio(
+            "Filter by Status",
+            ["All", "Completed", "Failed"],
+            horizontal=True,
+            key="run_status_filter",
+        )
+        display_run_df = run_df.copy()
+        if status_filter == "Completed":
+            display_run_df = display_run_df[display_run_df["status"] == "completed"]
+        elif status_filter == "Failed":
+            display_run_df = display_run_df[display_run_df["status"] == "failed"]
+
+        # Category breakdown bar chart
+        col_left, col_right = st.columns(2)
+        with col_left:
+            st.subheader("Category Breakdown")
+            cat_breakdown = display_run_df["category"].value_counts().reset_index()
+            cat_breakdown.columns = ["Category", "Count"]
+            fig_cat_run = px.bar(
+                cat_breakdown,
+                x="Category",
+                y="Count",
+                color="Category",
+                color_discrete_map=CATEGORY_COLORS,
+                text="Count",
+            )
+            fig_cat_run.update_layout(showlegend=False, height=300)
+            st.plotly_chart(fig_cat_run, use_container_width=True)
+
+        with col_right:
+            st.subheader("Execution Time Distribution")
+            time_data = display_run_df[display_run_df["execution_time"] > 0]
+            if not time_data.empty:
+                fig_time = px.histogram(
+                    time_data,
+                    x="execution_time",
+                    color="agent_type",
+                    nbins=15,
+                    labels={"execution_time": "Execution Time (s)"},
+                    color_discrete_map={"single_agent": "#42A5F5", "multi_agent": "#EF5350"},
+                )
+                fig_time.update_layout(height=300)
+                st.plotly_chart(fig_time, use_container_width=True)
+            else:
+                st.info("No execution time data available.")
+
+        # Per-run file comparison
+        st.subheader("Results by Source File")
+        source_files = display_run_df["source_file"].unique().tolist()
+        if source_files:
+            file_summary = []
+            for sf in source_files:
+                sf_df = display_run_df[display_run_df["source_file"] == sf]
+                file_summary.append({
+                    "File": sf,
+                    "Scenarios": len(sf_df),
+                    "Completed": len(sf_df[sf_df["status"] == "completed"]),
+                    "Failed": len(sf_df[sf_df["status"] == "failed"]),
+                    "Agent Type": sf_df["agent_type"].mode().iloc[0] if not sf_df["agent_type"].mode().empty else "unknown",
+                    "Avg Time (s)": f"{sf_df['execution_time'].mean():.1f}",
+                })
+            st.dataframe(pd.DataFrame(file_summary), use_container_width=True)
+
+        # Full results table
+        st.subheader("Detailed Run Results")
+        st.dataframe(display_run_df, use_container_width=True, height=400)
     else:
         st.info(
             "No benchmark runs recorded yet. Run benchmarks with the CLI:\n\n"
@@ -560,3 +667,206 @@ with tab5:
             st.text(f"{f.name} ({size_kb:.1f} KB)")
     else:
         st.text("No result files found.")
+
+# ---- Tab 6: Tool Explorer ----
+with tab6:
+    st.header("Tool Explorer")
+
+    if tools_inventory:
+        # Build sunburst data
+        sunburst_data = []
+        for server, categories in tools_inventory.items():
+            for category, tools_list in categories.items():
+                for tool in tools_list:
+                    sunburst_data.append({
+                        "server": server,
+                        "category": category,
+                        "tool": tool["name"],
+                        "description": tool.get("description", ""),
+                        "params": ", ".join(tool.get("params", [])),
+                        "value": 1,
+                    })
+
+        sunburst_df = pd.DataFrame(sunburst_data)
+
+        st.subheader("MCP Server / Category / Tool Hierarchy")
+        fig_sun = px.sunburst(
+            sunburst_df,
+            path=["server", "category", "tool"],
+            values="value",
+            color="server",
+            color_discrete_map={
+                "Prognostics Server": "#1E88E5",
+                "Maintenance Server": "#E53935",
+            },
+        )
+        fig_sun.update_layout(height=600)
+        st.plotly_chart(fig_sun, use_container_width=True)
+
+        # Tool detail panel
+        st.subheader("Tool Details")
+        all_tool_names = sunburst_df["tool"].tolist()
+        selected_tool = st.selectbox("Select a tool to view details", options=all_tool_names)
+
+        if selected_tool:
+            tool_row = sunburst_df[sunburst_df["tool"] == selected_tool].iloc[0]
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                st.markdown(f"**Tool:** `{tool_row['tool']}`")
+                st.markdown(f"**Server:** {tool_row['server']}")
+                st.markdown(f"**Category:** {tool_row['category']}")
+            with tc2:
+                st.markdown(f"**Description:** {tool_row['description']}")
+                st.markdown(f"**Parameters:** `{tool_row['params']}`")
+
+            # Cross-reference with scenarios
+            if scenarios:
+                matching_scenarios = [
+                    s for s in scenarios
+                    if selected_tool in s.get("required_tools", [])
+                ]
+                if matching_scenarios:
+                    st.markdown(f"**Used in {len(matching_scenarios)} scenarios:**")
+                    scenario_refs = []
+                    for s in matching_scenarios:
+                        scenario_refs.append({
+                            "Task ID": s.get("task_id", ""),
+                            "Category": s.get("classification_type", ""),
+                            "Dataset": s.get("dataset", ""),
+                        })
+                    st.dataframe(pd.DataFrame(scenario_refs), use_container_width=True, height=200)
+                else:
+                    st.info("This tool is not directly listed in any scenario's required_tools.")
+
+        # Summary stats
+        st.subheader("Tool Distribution Summary")
+        server_counts = sunburst_df.groupby("server").size().reset_index(name="Tools")
+        cat_counts = sunburst_df.groupby(["server", "category"]).size().reset_index(name="Tools")
+        s1, s2 = st.columns(2)
+        with s1:
+            st.markdown("**Tools per Server**")
+            st.dataframe(server_counts, use_container_width=True)
+        with s2:
+            st.markdown("**Tools per Category**")
+            st.dataframe(cat_counts, use_container_width=True)
+    else:
+        st.info("Tool inventory file not found. Expected at `frontend/tools_inventory.json`.")
+
+# ---- Tab 7: Interactive Playground ----
+with tab7:
+    st.header("Interactive Playground")
+    st.caption("Replay pre-recorded agent execution trajectories step-by-step.")
+
+    if trajectories:
+        # Scenario selector
+        traj_options = {}
+        for key, traj in trajectories.items():
+            scenario_info = traj.get("scenario", {})
+            label = f"{scenario_info.get('task_id', key)} — {scenario_info.get('classification_type', 'Unknown')} ({scenario_info.get('dataset', '')})"
+            traj_options[label] = key
+
+        selected_traj_label = st.selectbox(
+            "Select a scenario to replay",
+            options=list(traj_options.keys()),
+        )
+        selected_traj_key = traj_options[selected_traj_label]
+        traj_data = trajectories[selected_traj_key]
+
+        # Agent type and replay speed
+        col_a, col_b = st.columns(2)
+        with col_a:
+            agent_display = traj_data.get("agent_type", "multi_agent").replace("_", " ").title()
+            st.markdown(f"**Agent Type:** {agent_display}")
+            st.markdown(f"**Total Time:** {traj_data.get('total_time', 0):.1f}s")
+        with col_b:
+            replay_speed = st.slider("Replay Speed", min_value=0.5, max_value=5.0, value=2.0, step=0.5, format="%.1fx")
+
+        # Scenario info
+        scenario_info = traj_data.get("scenario", {})
+        with st.expander("Scenario Details", expanded=False):
+            st.markdown(f"**Task ID:** {scenario_info.get('task_id', '')}")
+            st.markdown(f"**Category:** {scenario_info.get('classification_type', '')}")
+            st.markdown(f"**Dataset:** {scenario_info.get('dataset', '')}")
+            st.markdown(f"**Question:** {scenario_info.get('question_preview', '')}")
+
+        # Live mode notice
+        st.info("**Trajectory Replay Mode** — Replaying a pre-recorded agent execution trace. Live Mode (requiring local API keys) coming soon.")
+
+        # Run button
+        if st.button("Run Scenario", type="primary"):
+            steps = traj_data.get("steps", [])
+            if not steps:
+                st.warning("No steps found in this trajectory.")
+            else:
+                # Step type styling
+                step_icons = {
+                    "thought": "brain",
+                    "action": "hammer_and_wrench",
+                    "observation": "mag",
+                    "final_answer": "white_check_mark",
+                }
+                step_colors = {
+                    "thought": "blue",
+                    "action": "orange",
+                    "observation": "green",
+                    "final_answer": "rainbow",
+                }
+
+                for step in steps:
+                    step_type = step.get("type", "thought")
+                    step_num = step.get("step", 0)
+                    content = step.get("content", "")
+                    tool_name = step.get("tool", "")
+                    step_time = step.get("time", 1.0)
+                    step_input = step.get("input", {})
+
+                    # Simulate delay based on replay speed
+                    delay = step_time / replay_speed
+                    time.sleep(min(delay, 2.0))  # Cap at 2s per step
+
+                    icon = step_icons.get(step_type, "arrow_right")
+                    label = step_type.replace("_", " ").title()
+
+                    if step_type == "action":
+                        with st.status(f"Step {step_num}: {label} — `{tool_name}`", state="complete"):
+                            st.markdown(f"**Tool:** `{tool_name}`")
+                            if step_input:
+                                st.json(step_input)
+                            st.markdown(content)
+                            st.caption(f"{step_time:.1f}s")
+                    elif step_type == "final_answer":
+                        st.success(f"**Step {step_num}: Final Answer**\n\n{content}")
+                        st.caption(f"Total replay time simulated: {traj_data.get('total_time', 0):.1f}s")
+                    elif step_type == "thought":
+                        with st.status(f"Step {step_num}: {label}", state="complete"):
+                            st.markdown(f"*{content}*")
+                            st.caption(f"{step_time:.1f}s")
+                    else:  # observation
+                        with st.status(f"Step {step_num}: {label}", state="complete"):
+                            st.code(content, language="text")
+                            st.caption(f"{step_time:.1f}s")
+
+        # Static view option
+        with st.expander("View Full Trajectory (Static)"):
+            steps = traj_data.get("steps", [])
+            for step in steps:
+                step_type = step.get("type", "thought")
+                step_num = step.get("step", 0)
+                content = step.get("content", "")
+                tool_name = step.get("tool", "")
+
+                if step_type == "thought":
+                    st.markdown(f"**Step {step_num} — Thought:** *{content}*")
+                elif step_type == "action":
+                    st.markdown(f"**Step {step_num} — Action:** `{tool_name}` — {content}")
+                elif step_type == "observation":
+                    st.markdown(f"**Step {step_num} — Observation:**")
+                    st.code(content, language="text")
+                elif step_type == "final_answer":
+                    st.markdown(f"**Step {step_num} — Final Answer:**")
+                    st.success(content)
+    else:
+        st.info(
+            "No trajectory files found. Expected in `results/trajectories/`.\n\n"
+            "Trajectory files are pre-recorded agent execution traces in JSON format."
+        )

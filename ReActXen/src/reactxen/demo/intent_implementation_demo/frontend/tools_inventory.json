@@ -1,0 +1,42 @@
+{
+  "Prognostics Server": {
+    "Data Loading": [
+      {"name": "load_dataset", "description": "Loads train/test splits for PHM datasets", "params": ["dataset_name"]},
+      {"name": "load_ground_truth", "description": "Loads ground truth RUL values or fault labels", "params": ["dataset_name"]}
+    ],
+    "Model Training": [
+      {"name": "train_rul_model", "description": "Trains remaining useful life prediction model", "params": ["dataset_name", "model_type"]},
+      {"name": "predict_rul", "description": "Generates RUL predictions for test units", "params": ["dataset_name", "unit_ids"]},
+      {"name": "train_fault_classifier", "description": "Trains multi-class fault classifier", "params": ["dataset_name", "model_type"]},
+      {"name": "classify_faults", "description": "Classifies fault types from sensor data", "params": ["dataset_name", "samples"]}
+    ],
+    "Metrics": [
+      {"name": "calculate_mae", "description": "Computes mean absolute error", "params": ["predictions", "actuals"]},
+      {"name": "calculate_rmse", "description": "Computes root mean squared error", "params": ["predictions", "actuals"]},
+      {"name": "verify_ground_truth", "description": "Validates predictions against ground truth", "params": ["predictions", "ground_truth"]},
+      {"name": "calculate_accuracy", "description": "Computes classification accuracy", "params": ["predictions", "labels"]},
+      {"name": "verify_classification", "description": "Validates fault classification results", "params": ["results", "ground_truth"]}
+    ],
+    "Engine Health": [
+      {"name": "analyze_engine_signals", "description": "Parses multi-sensor engine telemetry", "params": ["engine_id", "sensors"]},
+      {"name": "assess_component_health", "description": "Evaluates Fan/LPC/HPC/HPT/LPT status", "params": ["engine_id", "component"]},
+      {"name": "diagnose_timing_issues", "description": "Identifies efficiency vs flow faults", "params": ["engine_id", "sensor_data"]},
+      {"name": "detect_degradation_trend", "description": "Detects degradation patterns over cycles", "params": ["engine_id", "window"]}
+    ]
+  },
+  "Maintenance Server": {
+    "Cost-Benefit": [
+      {"name": "calculate_maintenance_cost", "description": "Computes preventive maintenance costs", "params": ["equipment_type", "strategy"]},
+      {"name": "calculate_failure_cost", "description": "Computes reactive failure costs", "params": ["equipment_type", "failure_mode"]},
+      {"name": "optimize_maintenance_schedule", "description": "Finds cost-optimal RUL threshold", "params": ["fleet_data", "cost_params"]}
+    ],
+    "Safety/Policy": [
+      {"name": "assess_safety_risk", "description": "Classifies unit risk level", "params": ["unit_id", "sensor_data"]},
+      {"name": "check_compliance", "description": "Validates against IEC/ISO/FAA standards", "params": ["unit_id", "standards"]},
+      {"name": "generate_safety_recommendations", "description": "Produces prioritized safety actions", "params": ["risk_assessment"]}
+    ],
+    "Web": [
+      {"name": "web_search", "description": "Searches web for domain-specific information", "params": ["query"]}
+    ]
+  }
+}

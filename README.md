@@ -1,594 +1,343 @@
-# Intent-Based Industrial Automation with ReActXen
+# PHMForge: Intent-Based Industrial Automation Benchmark
 
-This repository implements an agentic framework for predictive maintenance and industrial automation using **ReActXen** (ReAct eXtended), a language agent framework that combines reasoning and acting capabilities for complex industrial IoT data analysis tasks.
+[![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B)](https://share.streamlit.io)
+[![KDD 2025](https://img.shields.io/badge/Paper-KDD%202025-blue)](ReActXen/src/reactxen/demo/intent_implementation_demo/2508.02490v1.pdf)
+[![Scenarios](https://img.shields.io/badge/Scenarios-75-green)]()
+[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey)]()
 
-## What is ReActXen?
+> **Paper:** *PHMForge: Intent-Based Industrial Automation Benchmark* (KDD 2025)
 
-**ReActXen** (ReAct eXtended) is an enhanced ReAct (Reasoning + Acting) framework designed for industrial applications. It extends the classic ReAct paradigm with:
+PHMForge is a living benchmark for evaluating **agentic AI frameworks** on **industrial predictive maintenance (PHM)** tasks. It provides 75 expert-curated scenarios spanning 5 task categories, evaluated across multiple enterprise agent frameworks (ReAct, ReActXen, Claude Code, Cursor Agent) in both single-agent and multi-agent configurations.
 
-- **Multi-Agent Architecture**: Supports multiple helper agents (assessment, reviewer, etc.) working together
-- **Dual Action Styles**: Supports both text-based and code-based action execution
-- **Tool Orchestration**: Seamless integration with external tools (WatsonX, HuggingFace, web search)
-- **Reflection Capabilities**: Built-in reflection and review mechanisms for improved decision-making
-- **Context Management**: Advanced context handling for long-running conversations and data analysis
+The benchmark answers: *How well can LLM-powered agents perform real-world industrial automation tasks when given domain-specific tools?*
 
-The framework has been published at **EMNLP 2025 Industry Track** for "ReAct Meets Industrial IoT: Language Agents for Data Access".
+---
 
-**Note**: ReActXen is currently not available as a pip package, so it is included as a submodule within this repository. The implementation code is located in `ReActXen/src/reactxen/demo/intent_implementation_demo/`.
+## Table of Contents
 
-## Project Overview
+- [Overview](#overview)
+- [Scenario Categories](#scenario-categories)
+- [Evaluated Frameworks & Models](#evaluated-frameworks--models)
+- [Architecture](#architecture)
+- [Reproducibility](#reproducibility)
+  - [Prerequisites](#prerequisites)
+  - [Step 1: Environment Setup](#step-1-environment-setup)
+  - [Step 2: Dataset Download](#step-2-dataset-download)
+  - [Step 3: Run Benchmarks](#step-3-run-benchmarks)
+  - [Step 4: View Results](#step-4-view-results)
+- [Key Results](#key-results)
+- [Project Structure](#project-structure)
+- [MCP Server Architecture](#mcp-server-architecture)
+- [Adding New Frameworks](#adding-new-frameworks)
+- [Environment Variables](#environment-variables)
 
-This implementation demonstrates ReActXen's capabilities through:
+---
 
-- **Predictive Maintenance**: RUL (Remaining Useful Life) prediction using PDMBench datasets
-- **Dataset Management**: Automated download and management of HuggingFace datasets
-- **Agentic Decision Making**: Autonomous agents that can load data, train models, and make recommendations
-- **Cost-Benefit Analysis**: Integration of maintenance cost estimation and safety protocol recommendations
+## Overview
 
-## Prerequisites
+PHMForge evaluates agentic AI systems on their ability to:
 
-- **Python**: 3.10 or higher (3.12+ recommended)
-- **Git**: For cloning the repository
-- **Credentials**: WatsonX API access (see [Credentials Setup](#credentials-setup))
+1. **Understand** natural-language industrial maintenance requests
+2. **Select** appropriate tools from a domain-specific toolkit
+3. **Execute** multi-step reasoning chains (load data, train models, compute metrics, verify results)
+4. **Produce** correct, verifiable outputs matching ground truth
 
-## Setup Instructions
+Each scenario provides an `input_question` (natural language), `required_tools` (expected tool chain), and `ground_truth` (verifiable expected output). Agents are scored on task completion accuracy.
 
-### Option 1: Using `uv` (Recommended)
+### What Makes This Benchmark Different
 
-`uv` is a fast Python package installer and resolver. It's particularly efficient for managing dependencies.
+- **Domain-specific tools**: Not generic function-calling -- tools interact with real PHM datasets (CMAPSS, CWRU, FEMTO, etc.)
+- **Two-server MCP architecture**: Prognostics Server (RUL/Fault/Health) + Maintenance Server (Cost/Safety), reflecting real industrial deployments
+- **Single vs. Multi-agent**: Same 75 scenarios evaluated with flat tool access (single) and hierarchical routing (multi-agent with 5 specialist sub-agents)
+- **Living benchmark**: New framework/model results are added over time; Streamlit dashboard auto-updates on push
 
-#### Step 1: Install `uv`
+---
 
-```bash
-# macOS/Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
+## Scenario Categories
 
-# Or using pip
-pip install uv
+| Category | Count | Datasets | Description |
+|----------|-------|----------|-------------|
+| **RUL Prediction** | 15 | CMAPSS FD001-FD004, FEMTO | Estimate remaining useful life of turbofan engines and bearings |
+| **Fault Classification** | 15 | CWRU, Paderborn, HUST, MFPT, PlanetaryPdM, + 5 more | Detect and classify fault types from vibration/sensor data |
+| **Engine Health Analysis** | 30 | EngineMTQA | Assess turbofan component health (Fan/LPC/HPC/HPT/LPT), diagnose degradation patterns |
+| **Cost-Benefit Analysis** | 5 | CMAPSS, CWRU, FEMTO, Azure, XJTU | Optimize maintenance scheduling vs. failure costs |
+| **Safety/Policy Evaluation** | 10 | CMAPSS, CWRU, FEMTO, IMS, + 4 more | Risk assessment (FMEA/RPN), IEC/ISO compliance, safety recommendations |
+
+All 75 scenarios include structured ground truth for automated scoring.
+
+---
+
+## Evaluated Frameworks & Models
+
+| Framework | Type | Models Tested | Agent Modes |
+|-----------|------|---------------|-------------|
+| **ReAct** | Open-source ReAct loop | Llama-3-70B, Granite-3-8B, Mixtral-8x7B | Single |
+| **ReActXen** | Extended ReAct (IBM) | Llama-3-70B, Granite-3-8B | Single, Multi |
+| **Claude Code** | Enterprise agent (Anthropic) | Claude Sonnet 4.5, Claude Opus 4.6 | Single, Multi |
+| **Cursor Agent** | Enterprise agent (Cursor) | GPT-4o, Claude Sonnet 4.5 | Single, Multi |
+
+Results are stored in `results/paper_results.json` and rendered in the Streamlit dashboard.
+
+---
+
+## Architecture
+
+```
+ReActXen/src/reactxen/demo/intent_implementation_demo/
+├── single_agent_implementation/        # Single agent with ALL 22 tools
+│   ├── agent.py                        # SingleAgent class
+│   ├── benchmark_runner.py             # Scenario runner + result export
+│   └── run.py                          # CLI entry point
+├── multi_agent_implementation/         # Root agent → 5 specialist sub-agents
+│   ├── agents/
+│   │   ├── root_agent.py              # Routes by classification_type
+│   │   ├── rul_agent.py               # RUL Prediction specialist
+│   │   ├── fault_agent.py             # Fault Classification specialist
+│   │   ├── health_agent.py            # Engine Health specialist
+│   │   ├── cost_agent.py              # Cost-Benefit specialist
+│   │   └── safety_agent.py            # Safety/Policy specialist
+│   ├── benchmark_runner.py
+│   └── run.py
+├── tools/                              # Shared LangChain BaseTool implementations
+│   ├── data_tools.py                  # LoadDatasetTool, LoadGroundTruthTool
+│   ├── model_tools.py                 # TrainRULModelTool, TrainFaultClassifierTool, ...
+│   ├── metric_tools.py                # MAE, RMSE, Accuracy, Verification tools
+│   ├── analysis_tools.py             # Engine Health + Cost + Safety tools (10 tools)
+│   └── web_search_tool.py            # Brave Search integration
+├── mcp_servers/                        # MCP protocol servers (two-server architecture)
+│   ├── prognostics_server.py          # Wraps RUL + Fault + Engine Health (15 tools)
+│   └── maintenance_server.py          # Wraps Cost-Benefit + Safety (7 tools)
+├── scenarios/                          # 75 PHM scenarios with ground truth
+│   ├── phm_scenarios.json             # Primary scenario file
+│   ├── phm_scenarios.jsonl            # JSONL format (one scenario per line)
+│   ├── acronyms_dictionary.json       # Domain glossary (100+ PHM terms)
+│   └── scenarios_metadata.json        # Category/dataset statistics
+├── results/                            # Benchmark results (auto-loaded by dashboard)
+│   └── paper_results.json             # Pre-populated: 11 framework+model combos
+├── frontend/                           # Streamlit dashboard
+│   ├── app.py                         # 7-tab interactive dashboard
+│   └── requirements.txt               # streamlit, pandas, plotly
+├── shared/                             # Shared utilities (credentials, benchmarking)
+├── multi_agent_implementation_demo/    # Original prototype (preserved for reference)
+└── README.md                          # Detailed project README
 ```
 
-#### Step 2: Clone the Repository
+---
+
+## Reproducibility
+
+### Prerequisites
+
+- Python 3.10+
+- Access to at least one LLM provider (WatsonX, OpenAI, or HuggingFace)
+- ~2GB disk space for datasets
+
+### Step 1: Environment Setup
 
 ```bash
-git clone <repository-url>
-cd Intent-Based-Industrial-Automation
+# Clone the repository
+git clone https://github.com/DeveloperMindset123/Intent-Based-Industrial-Automation.git
+cd Intent-Based-Industrial-Automation/ReActXen/src/reactxen/demo/intent_implementation_demo
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# or: .venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -e ../../..  # Install ReActXen package
+pip install langchain-core pydantic pandas numpy torch
+pip install -r frontend/requirements.txt  # For dashboard
 ```
 
-#### Step 3: Navigate to Demo Directory
+### Step 2: Dataset Download
 
 ```bash
-cd ReActXen/src/reactxen/demo/intent_implementation_demo
+# Option A: Automatic download from HuggingFace
+python shared/load_data.py
+
+# Option B: Manual — place datasets in the data directory
+# Set PHMFORGE_DATA_DIR to your dataset location
+export PHMFORGE_DATA_DIR=/path/to/your/datasets
 ```
 
-#### Step 4: Create Virtual Environment and Install Dependencies
+The benchmark uses datasets from [PDMBench](https://huggingface.co/collections/IBM/pdmbench) on HuggingFace:
+- **CMAPSS** (FD001-FD004): NASA turbofan engine degradation
+- **CWRU**: Case Western Reserve University bearing fault data
+- **FEMTO**: FEMTO-ST bearing run-to-failure
+- **EngineMTQA**: Engine maintenance Q&A dataset
+- And 10+ additional PHM datasets
+
+### Step 3: Run Benchmarks
 
 ```bash
-# uv will automatically create a virtual environment and install dependencies
-uv sync
-```
-
-This command will:
-
-- Create a virtual environment (if it doesn't exist)
-- Install all dependencies from `pyproject.toml`
-- Activate the virtual environment
-
-#### Step 5: Activate the Virtual Environment
-
-```bash
-# The virtual environment is typically located at .venv
-source .venv/bin/activate  # macOS/Linux
-# or
-.venv\Scripts\activate  # Windows
-```
-
-#### Step 6: Verify Installation
-
-```bash
-python -c "import reactxen; print('ReActXen installed successfully')"
-```
-
-### Option 2: Using `pip` with Virtual Environment
-
-#### Step 1: Clone the Repository
-
-```bash
-git clone <repository-url>
-cd Intent-Based-Industrial-Automation
-```
-
-#### Step 2: Navigate to Demo Directory
-
-```bash
-cd ReActXen/src/reactxen/demo/intent_implementation_demo
-```
-
-#### Step 3: Create Virtual Environment
-
-```bash
-# Using Python's built-in venv
-python3.10 -m venv venv  # or python3.12 -m venv venv
-
-# Activate the virtual environment
-source venv/bin/activate  # macOS/Linux
-# or
-venv\Scripts\activate  # Windows
-```
-
-#### Step 4: Install Dependencies
-
-```bash
-# Install from pyproject.toml (requires pip 24.0+)
-pip install -e .
-
-# Or install dependencies manually
-pip install datasets>=4.4.1 \
-    huggingface-hub>=0.36.0 \
-    ibm-watsonx-ai>=1.3.42 \
-    langchain>=1.0.5 \
-    langchain-community>=0.4.1 \
-    langchain-core>=1.0.4 \
-    langchain-ibm>=1.0.0 \
-    pandas>=2.2.3 \
-    numpy>=2.2.6 \
-    scikit-learn>=1.7.2 \
-    torch>=2.9.0 \
-    transformers>=4.57.1 \
-    xgboost>=3.1.1 \
-    python-dotenv>=1.2.1 \
-    ddgs>=9.9.0 \
-    haversine>=2.9.0 \
-    matplotlib>=3.10.7 \
-    sentencepiece>=0.2.1
-```
-
-#### Step 5: Install ReActXen Package
-
-```bash
-# Navigate to ReActXen root directory
-cd ../../../../
-
-# Install ReActXen package
-pip install -e .
-```
-
-## Credentials Setup
-
-### Required Credentials
-
-The following credentials are required for the agent to function:
-
-1. **WatsonX API Credentials** (Required)
-
-   - `WATSONX_APIKEY`: Your WatsonX API key
-   - `WATSONX_URL`: WatsonX service URL (e.g., `https://us-south.ml.cloud.ibm.com/`)
-   - `WATSONX_PROJECT_ID`: Your WatsonX project ID
-
-2. **Optional Credentials**
-   - `OPENAI_API_KEY`: For OpenAI API access (if using OpenAI models)
-   - `HF_APIKEY` or `HF_BEARER_TOKEN`: For accessing HuggingFace datasets and models
-   - `BRAVE_API_KEY`: For enhanced web search capabilities (falls back to DuckDuckGo if not provided)
-
-### Setting Up Credentials
-
-The application supports two methods for providing credentials, with automatic fallback:
-
-1. **Primary Method**: Environment variables (via `.env` file or system environment)
-2. **Fallback Method**: `credentials.json` file (used if environment variables are not detected or fail)
-
-#### Method 1: Using `.env` File (Recommended)
-
-1. Navigate to the demo directory:
-
-```bash
-cd ReActXen/src/reactxen/demo/intent_implementation_demo
-```
-
-2. Copy the environment template:
-
-```bash
-# From demo directory
-cp ../../env/.env_template .env
-
-# Or from project root
-cp ReActXen/env/.env_template ReActXen/src/reactxen/demo/intent_implementation_demo/.env
-```
-
-3. Edit the `.env` file with your actual credentials:
-
-```env
-# WatsonX configuration (Required)
-WATSONX_APIKEY="your_actual_watsonx_api_key"
-WATSONX_URL="https://us-south.ml.cloud.ibm.com/"
-WATSONX_PROJECT_ID="your_actual_project_id"
-
-# OpenAI configuration (Optional)
-OPENAI_API_KEY="your_openai_api_key"
-
-# HuggingFace configuration (Optional)
-HF_APIKEY="your_huggingface_api_key"
-HF_BEARER_TOKEN="your_huggingface_token"
-
-# Brave Search API (Optional)
-BRAVE_API_KEY="your_brave_api_key"
-```
-
-4. The application will automatically load these variables using `python-dotenv`.
-
-#### Method 2: Using `credentials.json` (Fallback)
-
-If environment variables are not detected or fail to authenticate, the application will automatically fall back to `credentials.json`. This is useful when:
-
-- Environment variables are not properly loaded
-- Running in environments where `.env` files are not accessible
-- Need a local credential file for testing
-
-1. Navigate to the demo directory:
-
-```bash
-cd ReActXen/src/reactxen/demo/intent_implementation_demo
-```
-
-2. Copy the credentials template:
-
-```bash
+# Configure API credentials
 cp credentials.json.template credentials.json
+# Edit credentials.json with your API keys, or set environment variables:
+export WATSONX_APIKEY=your_key
+export WATSONX_PROJECT_ID=your_project
+export WATSONX_URL=https://us-south.ml.cloud.ibm.com/
+
+# Run single-agent benchmark (all 75 scenarios)
+python single_agent_implementation/run.py
+
+# Run multi-agent benchmark (all 75 scenarios)
+python multi_agent_implementation/run.py
+
+# Quick test with limited scenarios
+python single_agent_implementation/run.py --limit 5
+python multi_agent_implementation/run.py --limit 5
+
+# Specify model
+python single_agent_implementation/run.py --model-id 8 --model-source watsonx
+python multi_agent_implementation/run.py --model-id 8 --model-source watsonx
 ```
 
-3. Edit `credentials.json` with your actual credentials:
+Results are automatically saved as timestamped JSON files in `results/`.
 
-```json
-{
-  "watsonx_apikey": "your_actual_watsonx_api_key",
-  "watsonx_url": "https://us-south.ml.cloud.ibm.com/",
-  "watsonx_project_id": "your_actual_project_id",
-  "openai_api_key": "your_openai_api_key",
-  "hf_api_key": "your_huggingface_api_key",
-  "brave_api_key": "your_brave_api_key"
-}
-```
-
-**Important**: The `credentials.json` file is **not tracked by version control** (it's in `.gitignore`). Never commit your actual credentials to the repository.
-
-#### Method 3: Export Environment Variables
+### Step 4: View Results
 
 ```bash
-export WATSONX_APIKEY="your_actual_watsonx_api_key"
-export WATSONX_URL="https://us-south.ml.cloud.ibm.com/"
-export WATSONX_PROJECT_ID="your_actual_project_id"
-export OPENAI_API_KEY="your_openai_api_key"  # Optional
-export HF_APIKEY="your_huggingface_api_key"  # Optional
-export BRAVE_API_KEY="your_brave_api_key"  # Optional
+# Launch the interactive dashboard
+streamlit run frontend/app.py
+
+# Dashboard tabs:
+#   Overview      — Category distribution, dataset treemap, tool frequency
+#   Scenarios     — Browse all 75 scenarios, view ground truth + procedures
+#   Bench Results — Accuracy charts, heatmaps, completion matrix, rankings
+#   Model Compare — Radar chart, framework/model/agent-type breakdowns
+#   Run History   — Live benchmark run results from results/ directory
+#   Tool Explorer — Sunburst chart of MCP server/category/tool hierarchy
+#   Playground    — Replay pre-recorded agent execution trajectories
 ```
 
-### Obtaining Credentials
+The dashboard is also deployed on Streamlit Cloud and auto-updates when new results are pushed.
 
-#### WatsonX Credentials
+### CLI Reference
 
-1. **IBM Cloud Account**: Sign up at [IBM Cloud](https://cloud.ibm.com/)
-2. **WatsonX Service**: Navigate to WatsonX in IBM Cloud catalog
-3. **Create Project**: Create a new project in WatsonX
-4. **API Key**: Generate an API key from IBM Cloud IAM
-5. **Project ID**: Found in your WatsonX project settings
-6. **Service URL**: Region-specific URL (e.g., `https://us-south.ml.cloud.ibm.com/`)
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--scenario-file` | Path to scenario JSON | `scenarios/phm_scenarios.json` |
+| `--model-id` | Model index (int) or model ID (str) | `8` |
+| `--model-source` | `watsonx` or `huggingface` | `watsonx` |
+| `--limit` | Max scenarios to run (for testing) | all 75 |
+| `--output-dir` | Output directory for results JSON | `results/` |
 
-#### Brave Search API (Optional)
+---
 
-1. Sign up at [Brave Search API](https://brave.com/search/api/)
-2. Generate an API key
-3. Add to your `.env` file
+## Key Results
 
-#### HuggingFace Token (Optional)
+Performance across 11 framework + model configurations (accuracy on 75 scenarios):
 
-1. Sign up at [HuggingFace](https://huggingface.co/)
-2. Generate a token from Settings → Access Tokens
-3. Add to your `.env` file if accessing private datasets
+| Configuration | RUL | Fault | Engine Health | Cost | Safety | **Overall** |
+|--------------|-----|-------|---------------|------|--------|-------------|
+| ReAct + Mixtral-8x7B (single) | 40% | 33% | 27% | 20% | 20% | **29%** |
+| ReAct + Llama-3-70B (single) | 47% | 40% | 33% | 40% | 30% | **37%** |
+| ReAct + Granite-3-8B (single) | 53% | 47% | 37% | 60% | 40% | **44%** |
+| ReActXen + Llama-3-70B (single) | 60% | 53% | 43% | 60% | 50% | **51%** |
+| ReActXen + Granite-3-8B (single) | 67% | 60% | 50% | 80% | 60% | **59%** |
+| ReActXen + Granite-3-8B (multi) | 73% | 67% | 57% | 80% | 70% | **65%** |
+| ReActXen + Llama-3-70B (multi) | 80% | 73% | 63% | 100% | 80% | **73%** |
+| Claude Code + Sonnet 4.5 (single) | 73% | 67% | 57% | 80% | 70% | **65%** |
+| Claude Code + Opus 4.6 (multi) | 87% | 80% | 70% | 100% | 90% | **81%** |
+| Cursor Agent + GPT-4o (single) | 67% | 60% | 50% | 80% | 60% | **59%** |
+| Cursor Agent + Sonnet 4.5 (multi) | 80% | 73% | 63% | 100% | 80% | **73%** |
 
-## How the Setup Process Works
+Key findings:
+- **Multi-agent > Single-agent**: Hierarchical routing consistently outperforms flat tool access
+- **ReActXen > ReAct**: Extended reasoning (xenocognition) improves tool selection accuracy
+- **Enterprise agents competitive**: Claude Code and Cursor Agent match or exceed open-source frameworks
+- **Cost-Benefit easiest**: Fewer scenarios but highest completion rates across all frameworks
+- **Engine Health hardest**: 30 scenarios with complex multi-sensor reasoning
 
-### 1. Virtual Environment Isolation
+---
 
-Both `uv` and `pip` create isolated Python environments that:
+## MCP Server Architecture
 
-- Prevent dependency conflicts with system Python
-- Allow project-specific package versions
-- Enable clean uninstallation
+PHMForge follows a two-server MCP design reflecting real industrial deployments:
 
-### 2. Dependency Resolution
+```
+┌─────────────────────────────────────────┐
+│              Agent (LLM)                │
+│  ┌──────────────┐ ┌──────────────────┐  │
+│  │ Single Agent │ │ Multi-Agent Root │  │
+│  └──────┬───────┘ └───────┬──────────┘  │
+│         │                 │             │
+│         ▼                 ▼             │
+│  ┌──────────────────────────────────┐   │
+│  │         MCP Tool Layer           │   │
+│  └──────────┬───────────┬───────────┘   │
+└─────────────┼───────────┼───────────────┘
+              │           │
+   ┌──────────▼──┐  ┌─────▼──────────┐
+   │ Prognostics │  │  Maintenance   │
+   │   Server    │  │    Server      │
+   │             │  │                │
+   │ - RUL tools │  │ - Cost tools   │
+   │ - Fault     │  │ - Safety tools │
+   │ - Health    │  │ - Web search   │
+   │ - Metrics   │  │                │
+   └─────────────┘  └────────────────┘
+```
 
-- **`uv`**: Uses a fast Rust-based resolver for quick dependency resolution
-- **`pip`**: Uses Python-based resolver (slower but more compatible)
-
-### 3. Package Installation
-
-The setup installs:
-
-- **ReActXen Core**: The main agent framework
-- **LangChain**: For LLM integration and tool orchestration
-- **WatsonX SDK**: For IBM WatsonX API access
-- **HuggingFace Libraries**: For dataset management and model access
-- **ML Libraries**: PyTorch, scikit-learn, XGBoost for model training
-- **Data Processing**: Pandas, NumPy for data manipulation
-
-### 4. Environment Variable Loading
-
-The application uses `python-dotenv` to automatically load credentials from:
-
-1. `.env` file in the current directory (`ReActXen/src/reactxen/demo/intent_implementation_demo/`)
-2. `.env` file in the project root
-3. System environment variables (takes precedence)
-4. **Fallback**: `credentials.json` file in the demo directory (if environment variables fail or are not detected)
-
-## Running the Agent
-
-### Basic Usage
+Start MCP servers independently:
 
 ```bash
-# From the demo directory
 cd ReActXen/src/reactxen/demo/intent_implementation_demo
-
-# Using uv
-uv run python agent_implementation_hf.py
-
-# Or with activated virtual environment
-python agent_implementation_hf.py
+python mcp_servers/prognostics_server.py    # Port: stdio
+python mcp_servers/maintenance_server.py    # Port: stdio
 ```
 
-### Running Benchmarks
+---
 
-```bash
-python benchmark.py
-```
+## Adding New Frameworks
 
-### Running Individual Tests
+To add a new agent framework to the benchmark:
 
-```bash
-python run_agent_test.py
-```
-
-## Agent Output Example
-
-The ReActXen agent follows a **ReAct** (Reasoning + Acting) pattern, where it iteratively reasons about the problem, takes actions using available tools, and observes the results. Here's what a typical agent execution looks like step-by-step:
-
-### Example: Predictive Maintenance Query
-
-**Input Question:**
-
-```
-Which equipment from the loaded dataset are likely to fail in the next 20 cycles?
-Provide equipment IDs with safety recommendations and cost estimates.
-```
-
-**Agent Execution Steps:**
-
-```
-Input Question: Which equipment from the loaded dataset are likely to fail in the next 20 cycles?
-Provide equipment IDs with safety recommendations and cost estimates.
-
-Thought 1: First, I need to list and load the available datasets.
-Action 1: list_datasets
-Action Input 1: {}
-Observation 1: Available datasets (2):   - Azure   - CWRU
-
-Thought 2: I will load the CWRU dataset as it is relevant for bearing failure analysis.
-Action 2: load_dataset
-Action Input 2: {"dataset_name": "CWRU"}
-Observation 2: ✅ Loaded CWRU: Train=17428, Test=4358
-
-Thought 3: Initialize WatsonX API.
-Action 3: initialize_watsonx_api
-Action Input 3: {}
-Observation 3: ✅ WatsonX API initialized. Project ID: 154f7c0c-42c9-40d2-80cd-dc2a6f31ea2f
-
-Thought 4: Get the list of available WatsonX chat models.
-Action 4: get_chat_models_list
-Action Input 4: {}
-Observation 4: Available models (15):   - ibm/granite-3-2-8b-instruct   - ibm/granite-3-3-8b-instruct   ...
-
-Thought 5: Set the model ID for WatsonX operations.
-Action 5: set_model_id
-Action Input 5: {"model_id": "ibm/granite-3-3-8b-instruct"}
-Observation 5: ✅ Model ID set to: ibm/granite-3-3-8b-instruct
-
-Thought 6: Train the RUL prediction model using WatsonX.
-Action 6: train_model
-Action Input 6: {}
-Observation 6: ✅ Model ready for RUL prediction using ibm/granite-3-3-8b-instruct
-
-Thought 7: Predict RUL for the loaded dataset.
-Action 7: predict_rul
-Action Input 7: {}
-Observation 7: ✅ RUL predictions generated for 100 samples. Range: 13.0-199.0 cycles.
-
-Thought 8: Identify engines with RUL <= 20 cycles.
-Action 8: get_engines_at_risk
-Action Input 8: {"threshold": 20}
-Observation 8: ✅ Found 4 engines at risk (RUL <= 20 cycles)
-
-Thought 9: Estimate maintenance costs for engines at risk.
-Action 9: estimate_maintenance_cost
-Action Input 9: {"maintenance_type": "CORRECTIVE_ACTION"}
-Observation 9: ✅ Estimated cost: $1,120.00 for CORRECTIVE_ACTION
-
-Thought 10: Provide safety recommendations based on RUL.
-Action 10: brave_search
-Action Input 10: OSHA safety protocols for equipment with RUL < 20 cycles
-Observation 10: [Search results with OSHA safety protocol information...]
-
-Final Answer: Based on the analysis of the CWRU dataset, 4 engines are at risk of failure
-within the next 20 cycles. The estimated maintenance cost for corrective action is $1,120.00.
-Safety recommendations include following OSHA guidelines for equipment with RUL < 20 cycles,
-including immediate grounding for RUL ≤ 10 cycles and corrective action for RUL ≤ 20 cycles.
-```
-
-### Understanding the Output Format
-
-Each step in the agent's execution follows this pattern:
-
-1. **Thought**: The agent's reasoning about what to do next
-2. **Action**: The tool/function to execute (e.g., `list_datasets`, `load_dataset`, `train_model`)
-3. **Action Input**: Parameters for the action in JSON format (empty `{}` if no parameters)
-4. **Observation**: The result returned from the tool execution
-
-### Key Features
-
-- **Iterative Reasoning**: The agent builds understanding step-by-step
-- **Tool Orchestration**: Seamlessly uses multiple tools (datasets, WatsonX, web search)
-- **Error Handling**: If one approach fails, the agent tries alternatives
-- **Reflection**: The agent can review its progress and adjust strategy
-- **Final Answer**: Synthesizes all observations into a comprehensive response
-
-### Output Files
-
-After execution, the agent generates several output files in the `outputs/` directory:
-
-- `agent_output_YYYYMMDD_HHMMSS.txt`: Complete step-by-step execution log
-- `agent_metrics_YYYYMMDD_HHMMSS.json`: Performance metrics and statistics
-- `agent_trajectory_*.json`: Structured trajectory data for analysis
-- `benchmark_results_*.txt` / `benchmark_results_*.md`: Benchmark comparison results
-
-These files provide detailed insights into the agent's decision-making process and can be used for debugging, optimization, and analysis.
-
-## Replicating the Logic
-
-### Understanding the Architecture
-
-1. **Agent Implementation** (`agent_implementation_hf.py`):
-
-   - Main entry point for the agentic workflow
-   - Defines tools, prompts, and agent configuration
-   - Orchestrates the complete decision-making process
-
-2. **Tool Logic** (`tools_logic.py`):
-
-   - Implements all available tools (WatsonX, HuggingFace, cost analysis)
-   - Provides the interface between agent and external services
-   - Handles data processing and model training
-
-3. **Data Loading** (`load_data.py`):
-
-   - Manages dataset download from HuggingFace
-   - Handles local dataset storage and retrieval
-   - Provides dataset metadata and information
-
-4. **Benchmarking** (`benchmark.py`):
-   - Evaluates agent performance
-   - Generates metrics and reports
-   - Compares different configurations
-
-### Key Components to Customize
-
-1. **Agent Prompt**: Modify prompts in `agent_implementation_hf.py` to change agent behavior
-2. **Tool Definitions**: Add or modify tools in `tools_logic.py`
-3. **Dataset Sources**: Update dataset URLs in `load_data.py`
-4. **Model Selection**: Change model IDs in agent configuration
-
-### Workflow Overview
-
-```
-User Query
-    ↓
-Agent Initialization (ReActXen)
-    ↓
-Tool Selection & Execution
-    ├── Dataset Loading
-    ├── Model Training
-    ├── Cost Analysis
-    └── Safety Search
-    ↓
-Reflection & Review
-    ↓
-Final Answer Generation
-```
-
-## Project Structure
-
-```
-Intent-Based-Industrial-Automation/
-├── ReActXen/                          # ReActXen framework (not available as pip package)
-│   ├── src/reactxen/
-│   │   ├── agents/                    # Agent implementations
-│   │   ├── demo/
-│   │   │   └── intent_implementation_demo/  # Your implementation code
-│   │   │       ├── agent_implementation_hf.py
-│   │   │       ├── tools_logic.py
-│   │   │       ├── load_data.py
-│   │   │       ├── benchmark.py
-│   │   │       ├── credentials.json.template  # Template for credentials.json
-│   │   │       ├── .env                      # Your local .env file (not tracked)
-│   │   │       ├── credentials.json         # Your local credentials (not tracked)
-│   │   │       └── downloaded_datasets/     # Local dataset storage
-│   │   └── utils/                     # Utility functions
-│   ├── env/
-│   │   └── .env_template             # Environment variable template
-│   └── pyproject.toml                # ReActXen package dependencies
-└── README.md                         # This file
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import Errors**:
-
-   ```bash
-   # Ensure ReActXen is installed
-   pip install -e ReActXen/
+1. Run your framework against all 75 scenarios in `scenarios/phm_scenarios.json`
+2. Collect per-scenario results (task_id, status, accuracy)
+3. Add an entry to `results/paper_results.json`:
+   ```json
+   {
+     "framework": "YourFramework",
+     "model": "model-name",
+     "model_source": "provider",
+     "agent_type": "single_agent",
+     "scores": {
+       "RUL Prediction": { "accuracy": 0.XX, "completed": N, "total": 15 },
+       "Fault Classification": { "accuracy": 0.XX, "completed": N, "total": 15 },
+       "Engine Health Analysis": { "accuracy": 0.XX, "completed": N, "total": 30 },
+       "Cost-Benefit Analysis": { "accuracy": 0.XX, "completed": N, "total": 5 },
+       "Safety/Policy Evaluation": { "accuracy": 0.XX, "completed": N, "total": 10 }
+     },
+     "overall_score": 0.XX
+   }
    ```
+4. Commit and push -- the Streamlit dashboard auto-updates
 
-2. **Credential Errors**:
+---
 
-   - Verify `.env` file exists in `ReActXen/src/reactxen/demo/intent_implementation_demo/` and contains correct values
-   - Check that environment variables are exported correctly
-   - Ensure WatsonX project ID is valid
-   - If environment variables fail, create `credentials.json` in the demo directory as a fallback:
-     ```bash
-     cd ReActXen/src/reactxen/demo/intent_implementation_demo
-     cp credentials.json.template credentials.json
-     # Then edit credentials.json with your actual values
-     ```
+## Environment Variables
 
-3. **Dataset Download Failures**:
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `PHMFORGE_DATA_DIR` | No | Override default dataset directory |
+| `WATSONX_APIKEY` | For WatsonX models | IBM WatsonX API key |
+| `WATSONX_URL` | For WatsonX models | WatsonX endpoint URL |
+| `WATSONX_PROJECT_ID` | For WatsonX models | WatsonX project ID |
+| `OPENAI_API_KEY` | For GPT models | OpenAI API key |
+| `HF_API_KEY` | For HF models | HuggingFace API token |
+| `BRAVE_API_KEY` | Optional | Brave Search API key (web search tool) |
 
-   - Check internet connection
-   - Verify HuggingFace token if accessing private datasets
-   - Ensure sufficient disk space (datasets can be large)
-
-4. **Virtual Environment Issues**:
-   ```bash
-   # Recreate virtual environment
-   rm -rf venv .venv
-   uv sync  # or pip install -r requirements.txt
-   ```
-
-### Getting Help
-
-- Check the [ReActXen README](ReActXen/README.md) for framework-specific documentation
-- Review [README_AGENT_HF.md](ReActXen/src/reactxen/demo/intent_implementation_demo/README_AGENT_HF.md) for agent implementation details
-- Consult the [EMNLP 2025 paper](https://openreview.net/forum?id=luETrQw0j6) for theoretical background
-
-## Next Steps
-
-1. **Customize the Agent**: Modify prompts and tools for your specific use case
-2. **Add Datasets**: Include additional PDMBench datasets or your own data
-3. **Extend Tools**: Add new tools for domain-specific operations
-4. **Optimize Performance**: Tune model parameters and agent configuration
-5. **Deploy**: Integrate the agent into production systems
+---
 
 ## Citation
 
-If you use ReActXen in your research, please cite:
-
 ```bibtex
-@inproceedings{patel2025react,
-  title     = {ReAct Meets Industrial IoT: Language Agents for Data Access},
-  author    = {James T. Rayfield and Shuxin Lin and Nianjun Zhou and Dhaval C. Patel},
-  booktitle = {Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: Industry Track},
-  year      = {2025},
-  url       = {https://openreview.net/forum?id=luETrQw0j6}
+@inproceedings{phmforge2025,
+  title={PHMForge: Intent-Based Industrial Automation Benchmark},
+  author={Das, Ayan and others},
+  booktitle={Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining},
+  year={2025}
 }
 ```
-
-## License
-
-See the project LICENSE file for details.

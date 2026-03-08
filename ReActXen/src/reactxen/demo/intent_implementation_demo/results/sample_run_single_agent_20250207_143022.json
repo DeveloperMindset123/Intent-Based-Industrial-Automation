@@ -1,0 +1,92 @@
+[
+  {
+    "task_id": "rul_001",
+    "classification_type": "RUL Prediction",
+    "dataset": "CMAPSS_FD001",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 45.2,
+    "result": {"mae": 18.3, "rmse": 24.1, "verified": true}
+  },
+  {
+    "task_id": "rul_002",
+    "classification_type": "RUL Prediction",
+    "dataset": "CMAPSS_FD002",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 62.7,
+    "result": {"mae": 22.6, "rmse": 29.8, "verified": true}
+  },
+  {
+    "task_id": "fault_001",
+    "classification_type": "Fault Classification",
+    "dataset": "CWRU",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 38.9,
+    "result": {"accuracy": 0.943, "f1_score": 0.937, "verified": true}
+  },
+  {
+    "task_id": "fault_002",
+    "classification_type": "Fault Classification",
+    "dataset": "Paderborn",
+    "agent_type": "single_agent",
+    "status": "failed",
+    "execution_time": 95.4,
+    "result": {"error": "Model convergence timeout after 90s. Paderborn dataset requires extended training window due to variable-speed operating conditions."}
+  },
+  {
+    "task_id": "health_001",
+    "classification_type": "Engine Health Monitoring",
+    "dataset": "EngineMTQA",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 52.1,
+    "result": {"components_assessed": 5, "degradation_detected": true, "health_score": 0.72, "verified": true}
+  },
+  {
+    "task_id": "health_002",
+    "classification_type": "Engine Health Monitoring",
+    "dataset": "EngineMTQA",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 48.6,
+    "result": {"components_assessed": 5, "degradation_detected": false, "health_score": 0.91, "verified": true}
+  },
+  {
+    "task_id": "cost_001",
+    "classification_type": "Cost-Benefit Analysis",
+    "dataset": "CMAPSS_FD001",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 78.3,
+    "result": {"optimal_threshold": 35, "annual_savings": 142000, "roi_ratio": 3.2, "verified": true}
+  },
+  {
+    "task_id": "cost_002",
+    "classification_type": "Cost-Benefit Analysis",
+    "dataset": "FEMTO",
+    "agent_type": "single_agent",
+    "status": "failed",
+    "execution_time": 112.8,
+    "result": {"error": "Insufficient bearing degradation data to compute reliable failure cost estimates. FEMTO dataset missing run-to-failure records for bearings 3 and 4."}
+  },
+  {
+    "task_id": "safety_001",
+    "classification_type": "Safety and Compliance",
+    "dataset": "CWRU",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 67.5,
+    "result": {"risk_level": "medium", "compliance_standards": ["IEC 61508", "ISO 13849"], "actions_recommended": 3, "verified": true}
+  },
+  {
+    "task_id": "safety_002",
+    "classification_type": "Safety and Compliance",
+    "dataset": "IMS",
+    "agent_type": "single_agent",
+    "status": "completed",
+    "execution_time": 84.2,
+    "result": {"risk_level": "high", "compliance_standards": ["IEC 61508", "ISO 13849", "FAA AC 33.70"], "actions_recommended": 5, "verified": true}
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "Condition_Monitoring": {
+    "category1": "Engine Health Analysis",
+    "justification": "fits since it handles anomaly detection, asset health status and condition monitoring"
+  },
+  "Fault_Diagnosis": {
+    "category1": "Fault Classification",
+    "justification": "fits since it focuses on identifying, diagnosing and categorizing specific faults that might have occured or is occuring"
+  },
+  "Fault & RUL Detection": {
+    "category1": "Remaining Useful Life (RUL)",
+    "justification": "focuses on predicting failure degradation, beneficial for trend analysis and estimating opertional lifecycle of asset"
+  },
+  "": {
+    "category1": "cost benefit analysis",
+    "justification1": "focuses on optimizing maintenance strategies, resource allocation and maintenance planning",
+    "category2": "safety",
+    "justification2": "focuses on risk mitigation, compliance with safety protocols and safety oriented maintenance decisions"
+  }
+}

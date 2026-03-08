@@ -1,0 +1,44 @@
+===========================================
+LaTeX Compilation Instructions
+===========================================
+
+Since pdflatex is not currently installed on your system, you have two options:
+
+OPTION 1: Install BasicTeX and compile locally
+-----------------------------------------------
+1. Install BasicTeX (requires sudo password):
+   brew install --cask basictex
+
+2. After installation, update PATH:
+   eval "$(/usr/libexec/path_helper)"
+
+3. Update tlmgr and install required packages:
+   sudo tlmgr update --self
+   sudo tlmgr install IEEEtran cite
+
+4. Compile the PDF:
+   cd /Users/ayandas/Desktop/research_ibm/Intent-Based-Industrial-Automation/ReActXen/src/reactxen/demo/intent_implementation_demo/multi_agent_implementation_demo
+   pdflatex research_paper.tex
+   bibtex research_paper
+   pdflatex research_paper.tex
+   pdflatex research_paper.tex
+
+OPTION 2: Use Overleaf (Recommended for preview)
+-------------------------------------------------
+1. Go to https://www.overleaf.com/
+2. Create a new project or upload research_paper.tex
+3. Upload reference_kdd.bib
+4. The PDF will compile automatically in your browser
+5. You can see the table I added in the "Experiments" section
+
+WHAT I ADDED
+------------
+I added a comprehensive dataset distribution table in Section 4.1 (Datasets), 
+showing all 75 scenarios distributed across 18 datasets, organized by task type:
+
+- RUL Prediction Datasets (20 scenarios)
+- Fault Classification Datasets (24 scenarios)  
+- Other Tasks (31 scenarios including EngineMTQA)
+
+The table is labeled as Table 4 in the paper.
+

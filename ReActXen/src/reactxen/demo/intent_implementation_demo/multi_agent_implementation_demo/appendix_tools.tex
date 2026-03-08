@@ -1,0 +1,47 @@
+\begin{table*}[ht]
+\caption{Complete inventory of 22 PHMForge tools across two MCP servers. Tools are grouped by functional category. $^\dagger$Prognostics Server. $^\ddagger$Intelligent Maintenance Server.}
+\label{tab:full_tools}
+\centering
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Tool Name} & \textbf{Server} & \textbf{Description} & \textbf{Input Parameters} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Data Loading}}$^\dagger$} \\
+\texttt{load\_dataset} & Prognostics & Loads train/test splits for PHM datasets (CMAPSS, CWRU, FEMTO, etc.) & \texttt{dataset\_name: str} \\
+\texttt{load\_ground\_truth} & Prognostics & Loads ground truth RUL values or fault labels for validation & \texttt{dataset\_name: str} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Model Training \& Prediction}}$^\dagger$} \\
+\texttt{train\_rul\_model} & Prognostics & Trains a remaining useful life prediction model & \texttt{dataset\_name: str, model\_type: str} \\
+\texttt{predict\_rul} & Prognostics & Generates RUL predictions for test units & \texttt{dataset\_name: str, unit\_ids: list} \\
+\texttt{train\_fault\_classifier} & Prognostics & Trains a multi-class fault classifier & \texttt{dataset\_name: str, model\_type: str} \\
+\texttt{classify\_faults} & Prognostics & Classifies fault types from sensor data & \texttt{dataset\_name: str, samples: list} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Metrics \& Verification}}$^\dagger$} \\
+\texttt{calculate\_mae} & Prognostics & Computes mean absolute error between predicted and actual RUL & \texttt{predictions: list, actuals: list} \\
+\texttt{calculate\_rmse} & Prognostics & Computes root mean squared error for RUL predictions & \texttt{predictions: list, actuals: list} \\
+\texttt{verify\_ground\_truth} & Prognostics & Validates predictions against ground truth values & \texttt{predictions: dict, ground\_truth: dict} \\
+\texttt{calculate\_accuracy} & Prognostics & Computes classification accuracy for fault detection & \texttt{predictions: list, labels: list} \\
+\texttt{verify\_classification} & Prognostics & Validates fault classification against labeled data & \texttt{results: dict, ground\_truth: dict} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Engine Health Analysis}}$^\dagger$} \\
+\texttt{analyze\_engine\_signals} & Prognostics & Parses multi-sensor engine telemetry data & \texttt{engine\_id: str, sensors: list} \\
+\texttt{assess\_component\_health} & Prognostics & Evaluates Fan/LPC/HPC/HPT/LPT component status & \texttt{engine\_id: str, component: str} \\
+\texttt{diagnose\_timing\_issues} & Prognostics & Identifies efficiency vs.\ flow faults in turbofan & \texttt{engine\_id: str, sensor\_data: dict} \\
+\texttt{detect\_degradation\_trend} & Prognostics & Detects degradation patterns over operational cycles & \texttt{engine\_id: str, window: int} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Cost-Benefit Analysis}}$^\ddagger$} \\
+\texttt{calculate\_maintenance\_cost} & Maintenance & Computes preventive maintenance costs with labor overhead & \texttt{equipment\_type: str, strategy: str} \\
+\texttt{calculate\_failure\_cost} & Maintenance & Computes reactive failure costs including downtime impact & \texttt{equipment\_type: str, failure\_mode: str} \\
+\texttt{optimize\_maintenance\_schedule} & Maintenance & Finds cost-optimal RUL threshold for maintenance & \texttt{fleet\_data: dict, cost\_params: dict} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Safety/Policy Evaluation}}$^\ddagger$} \\
+\texttt{assess\_safety\_risk} & Maintenance & Classifies unit risk level (low/medium/high/critical) & \texttt{unit\_id: str, sensor\_data: dict} \\
+\texttt{check\_compliance} & Maintenance & Validates against IEC/ISO/FAA regulatory standards & \texttt{unit\_id: str, standards: list} \\
+\texttt{generate\_safety\_recommendations} & Maintenance & Produces prioritized action items for safety mitigation & \texttt{risk\_assessment: dict} \\
+\midrule
+\multicolumn{4}{l}{\textbf{\textit{Web Search}}$^\ddagger$} \\
+\texttt{web\_search} & Maintenance & Searches the web for domain-specific information & \texttt{query: str} \\
+\bottomrule
+\end{tabular}
+\end{table*}
