@@ -208,7 +208,7 @@ else:
 # Tabs
 # ---------------------------------------------------------------------------
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "Overview",
     "Scenarios",
     "Benchmark Results",
@@ -216,6 +216,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Run History",
     "Tool Explorer",
     "Playground",
+    "MCP Servers",
 ])
 
 # ---- Tab 1: Overview ----
@@ -870,3 +871,150 @@ with tab7:
             "No trajectory files found. Expected in `results/trajectories/`.\n\n"
             "Trajectory files are pre-recorded agent execution traces in JSON format."
         )
+
+
+# ---- Tab 8: MCP Servers ----
+with tab8:
+    st.header("MCP Server Status & Metrics")
+
+    # Server architecture overview
+    st.subheader("Architecture")
+    st.markdown(
+        "PHMForge uses **2 MCP servers** with **22 tools** total, "
+        "connected via the Model Context Protocol (FastMCP framework)."
+    )
+
+    # Server definitions (static — matches the actual servers)
+    MCP_SERVERS = {
+        "prognostics": {
+            "display_name": "Prognostics Server",
+            "tools": 15,
+            "categories": ["Data Loading", "Model Training", "Prediction", "Metrics", "Engine Health"],
+            "transport": "stdio (SSE-capable)",
+            "tool_list": [
+                ("load_dataset", "Data Loading", "Load dataset from PDMBench"),
+                ("load_ground_truth", "Data Loading", "Load ground truth RUL values"),
+                ("train_rul_model", "Model Training", "Train RUL prediction model"),
+                ("predict_rul", "Prediction", "Predict remaining useful life"),
+                ("train_fault_classifier", "Model Training", "Train fault classification model"),
+                ("classify_faults", "Prediction", "Classify faults for test units"),
+                ("calculate_mae", "Metrics", "Calculate Mean Absolute Error"),
+                ("calculate_rmse", "Metrics", "Calculate Root Mean Squared Error"),
+                ("verify_ground_truth", "Metrics", "Verify predictions against ground truth"),
+                ("calculate_accuracy", "Metrics", "Calculate classification accuracy"),
+                ("verify_classification", "Metrics", "Verify fault classifications"),
+                ("analyze_engine_signals", "Engine Health", "Parse multi-sensor signal data"),
+                ("assess_component_health", "Engine Health", "Evaluate component health status"),
+                ("diagnose_timing_issues", "Engine Health", "Identify fault patterns"),
+                ("detect_degradation_trend", "Engine Health", "Analyze degradation trends"),
+            ],
+        },
+        "maintenance": {
+            "display_name": "Maintenance Server",
+            "tools": 7,
+            "categories": ["Cost-Benefit", "Safety/Policy", "Utility"],
+            "transport": "stdio (SSE-capable)",
+            "tool_list": [
+                ("calculate_maintenance_cost", "Cost-Benefit", "Compute annual preventive maintenance costs"),
+                ("calculate_failure_cost", "Cost-Benefit", "Estimate expected annual failure cost"),
+                ("optimize_maintenance_schedule", "Cost-Benefit", "Find cost-optimal maintenance threshold"),
+                ("assess_safety_risk", "Safety/Policy", "Classify risk using RPN analysis"),
+                ("check_compliance", "Safety/Policy", "Validate against safety standards"),
+                ("generate_safety_recommendations", "Safety/Policy", "Produce safety action items"),
+                ("web_search", "Utility", "Search internet via Brave API"),
+            ],
+        },
+    }
+
+    # Server cards
+    col1, col2 = st.columns(2)
+
+    for (server_name, info), col in zip(MCP_SERVERS.items(), [col1, col2]):
+        with col:
+            st.metric(info["display_name"], f"{info['tools']} tools")
+            st.caption(f"Transport: {info['transport']}")
+            st.markdown(f"Categories: {', '.join(info['categories'])}")
+
+            # Tool table
+            tool_df = pd.DataFrame(
+                info["tool_list"],
+                columns=["Tool Name", "Category", "Description"],
+            )
+            st.dataframe(
+                tool_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    st.divider()
+
+    # MCP Eval Metrics section
+    st.subheader("MCP Evaluation Metrics")
+    st.markdown(
+        "PHMForge tracks MCP-specific quality dimensions beyond task accuracy:"
+    )
+
+    mcp_eval_file = RESULTS_DIR / "mcp_eval_results.json"
+    if mcp_eval_file.exists():
+        with open(mcp_eval_file) as f:
+            mcp_results = json.load(f)
+
+        agg = mcp_results.get("aggregate", {})
+        if agg:
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Scenarios Evaluated", agg.get("scenarios_evaluated", 0))
+            m2.metric("Avg Tool Success Rate", f"{agg.get('avg_tool_success_rate', 0):.1%}")
+            m3.metric("Avg Schema Compliance", f"{agg.get('avg_schema_compliance_rate', 0):.1%}")
+            m4.metric("Avg Discovery Latency", f"{agg.get('avg_tool_discovery_latency_ms', 0):.0f}ms")
+
+            # Per-scenario results
+            scenario_results = mcp_results.get("scenarios", [])
+            if scenario_results:
+                eval_df = pd.DataFrame(scenario_results)
+                if "mcp_metrics" in eval_df.columns:
+                    metrics_df = pd.json_normalize(eval_df["mcp_metrics"])
+                    metrics_df["scenario_id"] = eval_df["scenario_id"]
+                    st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+    else:
+        st.info(
+            "No MCP eval results found. Run the benchmark with MCP evaluation enabled "
+            "to generate `results/mcp_eval_results.json`.\n\n"
+            "**Tracked metrics:**\n"
+            "- Tool discovery latency (ms)\n"
+            "- Tool call success rate\n"
+            "- Schema compliance rate\n"
+            "- Routing accuracy\n"
+            "- Context efficiency (chars consumed)"
+        )
+
+    st.divider()
+
+    # Tool usage across scenarios
+    st.subheader("Tool Usage Across Scenarios")
+    if scenarios:
+        tool_counts = {}
+        for s in scenarios:
+            for t in s.get("required_tools", []):
+                tool_counts[t] = tool_counts.get(t, 0) + 1
+
+        usage_df = pd.DataFrame(
+            sorted(tool_counts.items(), key=lambda x: -x[1]),
+            columns=["Tool", "Scenarios"],
+        )
+
+        # Add server column
+        prog_tools = {t[0] for t in MCP_SERVERS["prognostics"]["tool_list"]}
+        usage_df["Server"] = usage_df["Tool"].apply(
+            lambda t: "prognostics" if t in prog_tools else "maintenance"
+        )
+
+        fig = px.bar(
+            usage_df,
+            x="Tool",
+            y="Scenarios",
+            color="Server",
+            color_discrete_map={"prognostics": "#1E88E5", "maintenance": "#E53935"},
+            title="Tool Usage Distribution Across 75 Scenarios",
+        )
+        fig.update_layout(xaxis_tickangle=-45, height=400)
+        st.plotly_chart(fig, use_container_width=True)
