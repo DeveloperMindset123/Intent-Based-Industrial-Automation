@@ -114,7 +114,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "plot_degradation_trends"
+        "detect_degradation_trend",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Data loading -> model training -> prediction -> verification -> metric calculation -> visualization. The plot_degradation_trends tool requires both predictions and ground_truth, and operates on the top 5 risk units identified from predictions.",
       "ground_truth": {
@@ -192,7 +193,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "identify_operational_scenarios"
+        "analyze_engine_signals",
+        "calculate_rmse"
       ],
       "complexity_level": "medium",
       "dependency_analysis": "Load data -> identify scenarios -> train separate models per scenario -> predict per scenario -> verify per scenario -> calculate metrics per scenario -> comparative analysis.",
@@ -275,7 +277,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "analyze_fault_types"
+        "classify_faults",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Data loading -> fault type analysis -> train fault-specific models -> predict -> verify -> calculate overall metrics -> calculate per-fault metrics -> comparative analysis.",
       "ground_truth": {
@@ -353,7 +356,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "detect_anomalies"
+        "detect_degradation_trend",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> anomaly detection -> model training -> prediction -> anomaly flagging -> verification -> overall metrics -> anomaly-stratified metrics.",
       "ground_truth": {
@@ -433,7 +437,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "analyze_operating_conditions"
+        "analyze_engine_signals",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> analyze operating conditions -> train model -> predict -> verify -> overall metrics -> group by conditions -> per-condition metrics -> generalization assessment.",
       "ground_truth": {
@@ -513,7 +518,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "analyze_frequency_domain"
+        "analyze_engine_signals",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> frequency domain analysis -> feature extraction -> train model with combined features -> predict -> verify -> calculate metrics -> compare feature contributions.",
       "ground_truth": {
@@ -591,7 +597,8 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "analyze_multimodal_sensors"
+        "analyze_engine_signals",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load multimodal data -> analyze sensor contributions -> train model with all sensors -> predict -> verify -> calculate metrics -> train separate models per sensor -> compare accuracy -> rank sensor importance.",
       "ground_truth": {
@@ -671,7 +678,7 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "handle_non_stationary_data"
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load non-stationary data -> apply non-stationary handling -> train adapted model -> predict -> verify -> calculate metrics -> analyze by speed range.",
       "ground_truth": {
@@ -751,7 +758,7 @@
         "predict_rul",
         "verify_ground_truth",
         "calculate_mae",
-        "handle_large_dataset"
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load large dataset efficiently -> batch processing -> train with batches -> batch prediction -> verify -> calculate metrics -> performance benchmarking.",
       "ground_truth": {
@@ -831,8 +838,7 @@
         "train_fault_classifier",
         "classify_faults",
         "verify_classification",
-        "calculate_accuracy",
-        "calculate_confusion_matrix"
+        "calculate_accuracy"
       ],
       "dependency_analysis": "Load data -> train classifier -> classify -> verify -> calculate overall accuracy -> generate confusion matrix -> calculate per-fault metrics.",
       "ground_truth": {
@@ -905,8 +911,7 @@
         "train_fault_classifier",
         "classify_faults",
         "verify_classification",
-        "calculate_accuracy",
-        "analyze_fault_severity"
+        "calculate_accuracy"
       ],
       "dependency_analysis": "Load data -> analyze severity -> train classifier -> classify -> verify -> overall accuracy -> per-fault accuracy -> severity-stratified analysis.",
       "ground_truth": {
@@ -982,7 +987,7 @@
         "classify_faults",
         "verify_classification",
         "calculate_accuracy",
-        "analyze_multimodal_signals"
+        "analyze_engine_signals"
       ],
       "dependency_analysis": "Load multimodal data -> analyze modalities -> train combined classifier -> classify -> verify -> calculate accuracy -> train separate classifiers per modality -> compare accuracy.",
       "ground_truth": {
@@ -1056,8 +1061,7 @@
         "train_fault_classifier",
         "classify_faults",
         "verify_classification",
-        "calculate_accuracy",
-        "analyze_fault_severity_levels"
+        "calculate_accuracy"
       ],
       "dependency_analysis": "Load data -> analyze severity levels -> train multi-class classifier -> classify -> verify -> overall accuracy -> per-severity accuracy -> confusion matrix generation.",
       "ground_truth": {
@@ -1124,8 +1128,7 @@
         "train_fault_classifier",
         "classify_faults",
         "verify_classification",
-        "calculate_accuracy",
-        "localize_fault_components"
+        "calculate_accuracy"
       ],
       "dependency_analysis": "Load data -> component localization -> train component-specific classifier -> classify and localize -> verify -> overall accuracy -> per-component accuracy.",
       "ground_truth": {
@@ -1189,8 +1192,7 @@
         "train_fault_classifier",
         "classify_faults",
         "verify_classification",
-        "calculate_accuracy",
-        "distinguish_artificial_vs_natural"
+        "calculate_accuracy"
       ],
       "dependency_analysis": "Load data -> distinguish induction methods -> train classifier -> classify -> verify -> overall accuracy -> separate accuracy for artificial vs. natural -> comparison analysis.",
       "ground_truth": {
@@ -1268,7 +1270,7 @@
         "classify_faults",
         "verify_classification",
         "calculate_accuracy",
-        "analyze_operating_conditions"
+        "analyze_engine_signals"
       ],
       "dependency_analysis": "Load data -> analyze conditions -> train classifier -> classify -> verify -> overall accuracy -> per-category accuracy -> per-bearing-type accuracy -> condition-stratified accuracy.",
       "ground_truth": {
@@ -1344,7 +1346,7 @@
         "classify_faults",
         "verify_classification",
         "calculate_accuracy",
-        "analyze_load_conditions"
+        "analyze_engine_signals"
       ],
       "dependency_analysis": "Load data -> analyze load conditions -> train classifier -> classify -> verify -> overall accuracy -> per-fault-type accuracy -> load-stratified accuracy.",
       "ground_truth": {
@@ -1420,8 +1422,7 @@
         "train_fault_classifier",
         "classify_faults",
         "verify_classification",
-        "calculate_accuracy",
-        "handle_non_stationary_classification"
+        "calculate_accuracy"
       ],
       "dependency_analysis": "Load non-stationary data -> apply non-stationary handling -> train adapted classifier -> classify -> verify -> overall accuracy -> speed-range-stratified accuracy.",
       "ground_truth": {
@@ -1498,7 +1499,7 @@
         "classify_faults",
         "verify_classification",
         "calculate_accuracy",
-        "analyze_gearbox_structure"
+        "analyze_engine_signals"
       ],
       "dependency_analysis": "Load data -> analyze structure -> train classifier -> classify -> verify -> overall accuracy -> component-stratified accuracy.",
       "ground_truth": {
@@ -1562,8 +1563,7 @@
         "predict_rul",
         "calculate_maintenance_cost",
         "calculate_failure_cost",
-        "optimize_maintenance_schedule",
-        "compare_strategies"
+        "optimize_maintenance_schedule"
       ],
       "dependency_analysis": "Load data -> predict RUL -> calculate preventive cost -> calculate reactive cost -> optimize schedule -> compare strategies -> identify optimal threshold.",
       "ground_truth": {
@@ -1645,9 +1645,9 @@
       "required_tools": [
         "load_dataset",
         "classify_faults",
-        "calculate_fault_specific_costs",
-        "optimize_maintenance_priority",
-        "compare_fault_costs"
+        "calculate_maintenance_cost",
+        "optimize_maintenance_schedule",
+        "calculate_failure_cost"
       ],
       "dependency_analysis": "Load data -> classify faults -> calculate fault-specific costs -> calculate fault-specific failure costs -> optimize priority -> compare costs -> identify best ROI fault type.",
       "ground_truth": {
@@ -1729,9 +1729,9 @@
       "required_tools": [
         "load_dataset",
         "predict_rul",
-        "identify_operational_scenarios",
-        "calculate_scenario_specific_costs",
-        "optimize_by_scenario"
+        "analyze_engine_signals",
+        "calculate_maintenance_cost",
+        "optimize_maintenance_schedule"
       ],
       "dependency_analysis": "Load data -> identify scenarios -> predict RUL per scenario -> calculate scenario costs -> optimize per scenario -> compare scenarios -> identify most critical scenario.",
       "ground_truth": {
@@ -1814,8 +1814,8 @@
         "load_dataset",
         "predict_rul",
         "classify_faults",
-        "calculate_combined_costs",
-        "optimize_multi_objective"
+        "calculate_maintenance_cost",
+        "optimize_maintenance_schedule"
       ],
       "dependency_analysis": "Load data -> predict RUL -> classify faults -> calculate combined costs -> optimize multi-objective -> generate prioritized list.",
       "ground_truth": {
@@ -1885,9 +1885,8 @@
       "required_tools": [
         "load_dataset",
         "predict_rul",
-        "calculate_bulk_maintenance_cost",
-        "optimize_fleet_schedule",
-        "analyze_economies_of_scale"
+        "calculate_maintenance_cost",
+        "optimize_maintenance_schedule"
       ],
       "dependency_analysis": "Load large dataset -> predict RUL -> calculate bulk costs -> calculate individual costs -> optimize fleet schedule -> analyze economies of scale -> identify optimal batch sizes.",
       "ground_truth": {
@@ -2036,9 +2035,9 @@
       "required_tools": [
         "load_dataset",
         "classify_faults",
-        "assess_fault_safety_impact",
-        "check_industry_standards",
-        "generate_safety_protocols"
+        "assess_safety_risk",
+        "check_compliance",
+        "generate_safety_recommendations"
       ],
       "dependency_analysis": "Load data -> classify faults -> assess safety impact per fault type -> check standards -> generate protocols -> rank by criticality.",
       "ground_truth": {
@@ -2115,9 +2114,9 @@
       "required_tools": [
         "load_dataset",
         "classify_faults",
-        "assess_motor_safety",
-        "check_electrical_standards",
-        "generate_shutdown_protocols"
+        "assess_safety_risk",
+        "check_compliance",
+        "generate_safety_recommendations"
       ],
       "dependency_analysis": "Load data -> classify faults -> assess motor safety -> check electrical standards -> generate shutdown protocols -> classify risk levels.",
       "ground_truth": {
@@ -2182,9 +2181,9 @@
       "required_tools": [
         "load_dataset",
         "classify_faults",
-        "assess_severity_safety",
-        "check_motor_standards",
-        "generate_maintenance_policies"
+        "assess_safety_risk",
+        "check_compliance",
+        "generate_safety_recommendations"
       ],
       "dependency_analysis": "Load data -> classify severity -> assess safety per severity -> check standards -> generate policies -> define action thresholds.",
       "ground_truth": {
@@ -2249,10 +2248,9 @@
       "required_tools": [
         "load_dataset",
         "classify_faults",
-        "localize_fault_components",
-        "assess_gearbox_safety",
-        "check_mechanical_standards",
-        "generate_component_specific_policies"
+        "assess_safety_risk",
+        "check_compliance",
+        "generate_safety_recommendations"
       ],
       "dependency_analysis": "Load data -> classify and localize faults -> assess safety per component -> check standards -> generate component policies -> rank by criticality.",
       "ground_truth": {
@@ -2321,7 +2319,8 @@
         "train_rul_model",
         "predict_rul",
         "verify_ground_truth",
-        "calculate_mae"
+        "calculate_mae",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> train model -> predict -> verify -> rank by risk.",
       "ground_truth": {
@@ -2394,7 +2393,8 @@
         "train_rul_model",
         "predict_rul",
         "verify_ground_truth",
-        "calculate_mae"
+        "calculate_mae",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> train model -> predict -> verify -> rank by risk.",
       "ground_truth": {
@@ -2466,7 +2466,8 @@
         "train_rul_model",
         "predict_rul",
         "verify_ground_truth",
-        "calculate_mae"
+        "calculate_mae",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> train model -> predict -> verify -> rank by risk.",
       "ground_truth": {
@@ -2538,7 +2539,8 @@
         "train_rul_model",
         "predict_rul",
         "verify_ground_truth",
-        "calculate_mae"
+        "calculate_mae",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> train model -> predict -> verify -> rank by risk.",
       "ground_truth": {
@@ -2610,7 +2612,8 @@
         "train_rul_model",
         "predict_rul",
         "verify_ground_truth",
-        "calculate_mae"
+        "calculate_mae",
+        "calculate_rmse"
       ],
       "dependency_analysis": "Load data -> train model -> predict -> verify -> rank by risk.",
       "ground_truth": {
@@ -3332,7 +3335,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3363,7 +3366,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3394,7 +3397,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3425,7 +3428,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3462,7 +3465,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3495,7 +3498,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3529,7 +3532,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3563,7 +3566,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3597,7 +3600,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3630,7 +3633,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3663,7 +3666,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3696,7 +3699,7 @@
       "complexity": "High",
       "scenario_type": "comprehensive_component_assessment",
       "required_tools": [
-        "analyze_engine_signal",
+        "analyze_engine_signals",
         "assess_component_health",
         "diagnose_timing_issues"
       ],
@@ -3730,10 +3733,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -3780,10 +3783,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -3830,10 +3833,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -3880,10 +3883,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -3930,10 +3933,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -3980,10 +3983,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -4030,10 +4033,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -4080,10 +4083,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -4130,10 +4133,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -4180,10 +4183,10 @@
       "complexity": "High",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": [
@@ -4230,9 +4233,8 @@
       "complexity": "High",
       "scenario_type": "fault_diagnosis",
       "required_tools": [
-        "analyze_engine_signal",
-        "detect_component_faults",
-        "identify_fault_root_cause"
+        "analyze_engine_signals",
+        "diagnose_timing_issues"
       ],
       "is_closed_ended": true,
       "source_engine_id": "2364",
@@ -4269,9 +4271,8 @@
       "complexity": "High",
       "scenario_type": "fault_diagnosis",
       "required_tools": [
-        "analyze_engine_signal",
-        "detect_component_faults",
-        "identify_fault_root_cause"
+        "analyze_engine_signals",
+        "diagnose_timing_issues"
       ],
       "is_closed_ended": true,
       "source_engine_id": "4527",
@@ -4308,9 +4309,8 @@
       "complexity": "High",
       "scenario_type": "fault_diagnosis",
       "required_tools": [
-        "analyze_engine_signal",
-        "detect_component_faults",
-        "identify_fault_root_cause"
+        "analyze_engine_signals",
+        "diagnose_timing_issues"
       ],
       "is_closed_ended": true,
       "source_engine_id": "6781",
@@ -4347,9 +4347,8 @@
       "complexity": "High",
       "scenario_type": "fault_diagnosis",
       "required_tools": [
-        "analyze_engine_signal",
-        "detect_component_faults",
-        "identify_fault_root_cause"
+        "analyze_engine_signals",
+        "diagnose_timing_issues"
       ],
       "is_closed_ended": true,
       "source_engine_id": "3102",
@@ -4386,9 +4385,8 @@
       "complexity": "High",
       "scenario_type": "fault_diagnosis",
       "required_tools": [
-        "analyze_engine_signal",
-        "detect_component_faults",
-        "identify_fault_root_cause"
+        "analyze_engine_signals",
+        "diagnose_timing_issues"
       ],
       "is_closed_ended": true,
       "source_engine_id": "114993",
@@ -4424,9 +4422,8 @@
       "complexity": "High",
       "scenario_type": "fault_diagnosis",
       "required_tools": [
-        "analyze_engine_signal",
-        "detect_component_faults",
-        "identify_fault_root_cause"
+        "analyze_engine_signals",
+        "diagnose_timing_issues"
       ],
       "is_closed_ended": true,
       "source_engine_id": "93061",
@@ -4463,10 +4460,10 @@
       "complexity": "Critical",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": "synthetic_001",
@@ -4502,10 +4499,10 @@
       "complexity": "Critical",
       "scenario_type": "multi_cycle_trend_analysis",
       "required_tools": [
-        "analyze_engine_signal",
-        "predict_health_trend",
-        "estimate_failure_probability",
-        "recommend_maintenance"
+        "analyze_engine_signals",
+        "detect_degradation_trend",
+        "assess_component_health",
+        "optimize_maintenance_schedule"
       ],
       "is_closed_ended": false,
       "source_engine_ids": "synthetic_002",
