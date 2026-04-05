@@ -545,9 +545,6 @@ Unlike general-purpose agentic benchmarks that leverage pre-existing MCP servers
   \end{table}            
 
 
-  \begin{comment}
-      add the complete list of tools in table format within appendix later.
-  \end{comment}
   complete specifications appear in Appendix~\ref{app:tools}. Tool dependencies per        
   scenario       
   range from 3 tools for basic health assessments to 8 tools for multi-objective
@@ -555,10 +552,6 @@ Unlike general-purpose agentic benchmarks that leverage pre-existing MCP servers
   workflows, enabling systematic evaluation of how agents orchestrate tool sequences under 
   varying complexity.                            
 
-
-\begin{comment}
-    perhaps combine section 4.2 and 4.3?
-\end{comment}   
 
 \subsection{LLM Backbones and Agentic Frameworks}
 PHMForge evaluates frontier Large Language Models (LLMs) as reasoning backbones integrated with diverse agentic frameworks. We select models across capability tiers, including \textbf{Claude 3.5 Sonnet} and \textbf{Claude 4.0 Sonnet} (Anthropic), \textbf{GPT-4o} and \textbf{GPT-4-Turbo} (OpenAI), and the enterprise-ready \textbf{Granite-3.0-8B-Instruct} (IBM). Selection criteria prioritized function-calling robustness, instruction-following fidelity, and API reliability. All models are accessed via standard APIs with temperature $T=0$ to ensure deterministic reproducibility.
