@@ -46,7 +46,8 @@
 %%
 %%
 %\documentclass[sigconf]{acmart}
-\documentclass[sigconf,review]{acmart}
+\documentclass[sigconf, screen, nonacm]{acmart}
+%\documentclass[sigconf]{acmart}
 \usepackage{comment}
 \usepackage[export]{adjustbox}
 \usepackage{stfloats}
@@ -70,19 +71,19 @@
 %% values in them; it is your responsibility as an author to replace
 %% the commands and values with those provided to you when you
 %% complete the rights form.
-\setcopyright{acmlicensed}
-\copyrightyear{2026}
-\acmYear{2026}
-\acmDOI{XXXXXXX.XXXXXXX}
+%\setcopyright{acmlicensed}
+%\copyrightyear{2026}
+%\acmYear{2026}
+%\acmDOI{XXXXXXX.XXXXXXX}
 %% These commands are for a PROCEEDINGS abstract or paper.
-\acmConference[KDD '26] {The 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining} {August 9--13, 2026} {Jeju, South Korea}
+%\acmConference[KDD '26] {The 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining} {August 9--13, 2026} {Jeju, South Korea}
 %%
 %%  Uncomment \acmBooktitle if the title of the proceedings is different
 %%  from ``Proceedings of ...''!
 %%
 %%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
 %%  June 03--05, 2018, Woodstock, NY}
-\acmISBN{978-1-4503-XXXX-X/2018/06}
+%\acmISBN{978-1-4503-XXXX-X/2018/06}
 
 
 %%
@@ -902,11 +903,10 @@ Beyond merely establishing ground truth values, our evaluation framework explici
 
 Our evaluation framework enforces this ground truth utilization requirement through success criteria that demand both task completeness (\textgreater80\% of required components addressed) and successful ground truth verification. A task that produces RUL predictions without validating them against ground truth files is scored as incomplete, even if the predictions themselves happen to be accurate. This design choice enforces best practices in predictive maintenance workflows, where validation against known outcomes is essential to build confidence in model reliability and diagnostic accuracy. The verification requirement ensures that agents not only perform analytical tasks but also validate their outputs against empirical references---a critical capability for industrial deployment where unvalidated predictions pose operational risks.
 
-Validation criteria vary by scenario type but generally assess three dimensions through our deterministic evaluation protocol: \textit{completeness} (were all required task components addressed, including data loading, model training/loading, prediction/classification, metric computation, and verification?), \textit{correctness} (do the answers match or fall within acceptable ranges of ground truth values, with quantitative thresholds for RUL errors and accuracy requirements for classification?), and \textit{efficiency} (was the task completed within reasonable resource constraints without redundant operations or inappropriate tool usage?). This comprehensive ground truth preparation and utilization process ensures that every scenario in our benchmark can be evaluated objectively and consistently through threshold-based evaluation. When an agent claims an MAE of 15 cycles for CMAPSS\_FD001 RUL prediction, we can verify this claim against actual test data through deterministic comparison. When an agent classifies a bearing fault as "inner race damage at 0.014-inch crack depth," we can check this against labeled ground truth through categorical matching. This deterministic evaluation capability distinguishes our benchmark from more subjective evaluation frameworks and enables rigorous comparison across different agent architectures, LLM backends, and tool orchestration strategies.
 
 \subsection{Statistical Breakdown of Scenarios}
 
-Our final benchmark comprises 75 expert-vetted scenarios distributed across 18 datasets, five task categories, and multiple query types, representing a comprehensive evaluation framework for agentic PHM systems. This distribution reflects both the relative importance and complexity of different task types in industrial practice, as well as our systematic expansion strategy from initial proof-of-concept to comprehensive multi-asset, multi-task coverage. Table~\ref{tab:scenario_breakdown} presents the distribution of scenarios across task categories, revealing deliberate choices in scenario allocation driven by operational significance and cognitive complexity.
+Our final benchmark comprises 75 expert-vetted scenarios distributed across 18 datasets, five task categories, and multiple query types, representing a comprehensive evaluation framework for agentic PHM systems. This distribution reflects both the relative importance and complexity of different task types in industrial practice, as well as our systematic expansion strategy from initial proof-of-concept to comprehensive multi-asset, multi-task coverage. We present the distribution of scenarios across task categories, revealing deliberate choices in scenario allocation driven by operational significance and cognitive complexity.
 
 \textbf{Task Category Distribution and Justification:} Engine Health Analysis scenarios constitute the largest category (30 scenarios, 40\%) because they encompass diverse cognitive sub-tasks spanning four stages of diagnostic reasoning. These scenarios leverage the EngineMTQA dataset's extensive coverage of multi-modal sensor data (temperature, pressure, vibration, RPM across turbofan components: HPC, LPC, HPT, LPT, fan) and expert-validated question-answer pairs. The 30 scenarios distribute across Understanding (16 scenarios testing open-ended signal interpretation and temporal pattern recognition), Perception (8 scenarios testing closed-ended health status classification), Reasoning (4 scenarios testing causal analysis and degradation trend prediction), and Decision-Making (2 scenarios testing maintenance planning and operational recommendations). This cognitive diversity within a single task category justifies its 40\% allocation---it effectively encompasses multiple evaluation dimensions within condition monitoring workflows.
 
