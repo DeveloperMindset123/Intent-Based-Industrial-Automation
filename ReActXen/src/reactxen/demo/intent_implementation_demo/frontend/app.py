@@ -89,21 +89,33 @@ def load_trajectories() -> dict[str, dict]:
     return trajectories
 
 
+@st.cache_data
+def load_ablation_results() -> dict | None:
+    """Load ablation study results."""
+    ablation_file = RESULTS_DIR / "ablation_results.json"
+    if not ablation_file.exists():
+        return None
+    with open(ablation_file, "r") as f:
+        return json.load(f)
+
+
 def scenarios_to_df(scenarios: list[dict]) -> pd.DataFrame:
     """Convert scenario list to a DataFrame with key columns."""
     rows = []
     for s in scenarios:
         gt = s.get("ground_truth", {})
-        rows.append({
-            "task_id": s.get("task_id", ""),
-            "category": s.get("classification_type", "Unknown"),
-            "dataset": s.get("dataset", ""),
-            "required_tools": ", ".join(s.get("required_tools", [])),
-            "n_tools": len(s.get("required_tools", [])),
-            "has_ground_truth": bool(gt),
-            "expected_format": gt.get("expected_output_format", ""),
-            "question_preview": (s.get("input_question", "") or "")[:120] + "...",
-        })
+        rows.append(
+            {
+                "task_id": s.get("task_id", ""),
+                "category": s.get("classification_type", "Unknown"),
+                "dataset": s.get("dataset", ""),
+                "required_tools": ", ".join(s.get("required_tools", [])),
+                "n_tools": len(s.get("required_tools", [])),
+                "has_ground_truth": bool(gt),
+                "expected_format": gt.get("expected_output_format", ""),
+                "question_preview": (s.get("input_question", "") or "")[:120] + "...",
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -112,18 +124,20 @@ def paper_results_to_df(paper_data: dict) -> pd.DataFrame:
     rows = []
     for entry in paper_data.get("results", []):
         for category, scores in entry.get("scores", {}).items():
-            rows.append({
-                "framework": entry["framework"],
-                "model": entry["model"],
-                "agent_type": entry.get("agent_type", "single_agent"),
-                "category": category,
-                "accuracy": scores["accuracy"],
-                "completed": scores["completed"],
-                "total": scores["total"],
-                "overall_score": entry.get("overall_score", 0),
-                "label": f"{entry['framework']} + {entry['model']}",
-                "config": f"{entry['framework']} + {entry['model']} ({entry.get('agent_type', 'single').replace('_', ' ')})",
-            })
+            rows.append(
+                {
+                    "framework": entry["framework"],
+                    "model": entry["model"],
+                    "agent_type": entry.get("agent_type", "single_agent"),
+                    "category": category,
+                    "accuracy": scores["accuracy"],
+                    "completed": scores["completed"],
+                    "total": scores["total"],
+                    "overall_score": entry.get("overall_score", 0),
+                    "label": f"{entry['framework']} + {entry['model']}",
+                    "config": f"{entry['framework']} + {entry['model']} ({entry.get('agent_type', 'single').replace('_', ' ')})",
+                }
+            )
     return pd.DataFrame(rows)
 
 
@@ -138,7 +152,7 @@ st.set_page_config(
 )
 
 st.title("PHMForge Benchmark Dashboard")
-st.caption("Intent-Based Industrial Automation | 75 Scenarios | 5 Categories | KDD 2025")
+st.caption("PHMForge: A Scenario-Driven Agentic Benchmark for Industrial Asset Lifecycle Maintenance | 75 Scenarios | 5 Categories | KDD 2026")
 
 # ---------------------------------------------------------------------------
 # Load Data
@@ -149,6 +163,7 @@ paper_data = load_paper_results()
 run_results = load_run_results()
 tools_inventory = load_tools_inventory()
 trajectories = load_trajectories()
+ablation_data = load_ablation_results()
 scenario_df = scenarios_to_df(scenarios) if scenarios else pd.DataFrame()
 paper_df = paper_results_to_df(paper_data) if paper_data else pd.DataFrame()
 
@@ -159,14 +174,22 @@ paper_df = paper_results_to_df(paper_data) if paper_data else pd.DataFrame()
 with st.sidebar:
     st.header("Filters")
 
-    all_categories = sorted(scenario_df["category"].unique().tolist()) if not scenario_df.empty else []
+    all_categories = (
+        sorted(scenario_df["category"].unique().tolist())
+        if not scenario_df.empty
+        else []
+    )
     selected_categories = st.multiselect(
         "Categories",
         options=all_categories,
         default=all_categories,
     )
 
-    all_datasets = sorted(scenario_df["dataset"].unique().tolist()) if not scenario_df.empty else []
+    all_datasets = (
+        sorted(scenario_df["dataset"].unique().tolist())
+        if not scenario_df.empty
+        else []
+    )
     selected_datasets = st.multiselect(
         "Datasets",
         options=all_datasets,
@@ -208,15 +231,19 @@ else:
 # Tabs
 # ---------------------------------------------------------------------------
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "Overview",
-    "Scenarios",
-    "Benchmark Results",
-    "Model Comparison",
-    "Run History",
-    "Tool Explorer",
-    "Playground",
-])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(
+    [
+        "Overview",
+        "Scenarios",
+        "Benchmark Results",
+        "Model Comparison",
+        "Ablation Study",
+        "Run History",
+        "Tool Explorer",
+        "Playground",
+        "MCP Servers",
+    ]
+)
 
 # ---- Tab 1: Overview ----
 with tab1:
@@ -252,7 +279,11 @@ with tab1:
 
         # Datasets per category
         st.subheader("Dataset Distribution")
-        ds_cat = scenario_df.groupby(["category", "dataset"]).size().reset_index(name="count")
+        ds_cat = (
+            scenario_df.groupby(["category", "dataset"])
+            .size()
+            .reset_index(name="count")
+        )
         fig_ds = px.treemap(
             ds_cat,
             path=["category", "dataset"],
@@ -269,10 +300,14 @@ with tab1:
         for _, row in scenario_df.iterrows():
             for tool in row["required_tools"].split(", "):
                 if tool.strip():
-                    tool_data.append({"category": row["category"], "tool": tool.strip()})
+                    tool_data.append(
+                        {"category": row["category"], "tool": tool.strip()}
+                    )
         if tool_data:
             tool_df = pd.DataFrame(tool_data)
-            tool_counts = tool_df.groupby(["category", "tool"]).size().reset_index(name="count")
+            tool_counts = (
+                tool_df.groupby(["category", "tool"]).size().reset_index(name="count")
+            )
             fig_tools = px.bar(
                 tool_counts.sort_values("count", ascending=True).tail(20),
                 x="count",
@@ -291,7 +326,16 @@ with tab2:
 
     if not filtered_scenarios.empty:
         st.dataframe(
-            filtered_scenarios[["task_id", "category", "dataset", "n_tools", "expected_format", "question_preview"]],
+            filtered_scenarios[
+                [
+                    "task_id",
+                    "category",
+                    "dataset",
+                    "n_tools",
+                    "expected_format",
+                    "question_preview",
+                ]
+            ],
             use_container_width=True,
             height=400,
             column_config={
@@ -299,8 +343,12 @@ with tab2:
                 "category": st.column_config.TextColumn("Category", width="medium"),
                 "dataset": st.column_config.TextColumn("Dataset", width="small"),
                 "n_tools": st.column_config.NumberColumn("Tools", width="small"),
-                "expected_format": st.column_config.TextColumn("Output Format", width="small"),
-                "question_preview": st.column_config.TextColumn("Question", width="large"),
+                "expected_format": st.column_config.TextColumn(
+                    "Output Format", width="small"
+                ),
+                "question_preview": st.column_config.TextColumn(
+                    "Question", width="large"
+                ),
             },
         )
         st.caption(f"Showing {len(filtered_scenarios)} of {len(scenario_df)} scenarios")
@@ -313,21 +361,37 @@ with tab2:
         )
 
         if selected_id:
-            scenario = next((s for s in scenarios if s.get("task_id") == selected_id), None)
+            scenario = next(
+                (s for s in scenarios if s.get("task_id") == selected_id), None
+            )
             if scenario:
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.markdown(f"**Category:** {scenario.get('classification_type', '')}")
+                    st.markdown(
+                        f"**Category:** {scenario.get('classification_type', '')}"
+                    )
                     st.markdown(f"**Dataset:** {scenario.get('dataset', '')}")
-                    st.markdown(f"**Required Tools:** {', '.join(scenario.get('required_tools', []))}")
+                    st.markdown(
+                        f"**Required Tools:** {', '.join(scenario.get('required_tools', []))}"
+                    )
                 with col2:
                     gt = scenario.get("ground_truth", {})
-                    st.markdown(f"**Output Format:** {gt.get('expected_output_format', 'N/A')}")
-                    st.markdown(f"**Verification Required:** {gt.get('verification_required', 'N/A')}")
+                    st.markdown(
+                        f"**Output Format:** {gt.get('expected_output_format', 'N/A')}"
+                    )
+                    st.markdown(
+                        f"**Verification Required:** {gt.get('verification_required', 'N/A')}"
+                    )
 
                 st.markdown("---")
                 st.markdown("**Input Question:**")
-                st.text_area("", value=scenario.get("input_question", ""), height=150, disabled=True, label_visibility="collapsed")
+                st.text_area(
+                    "",
+                    value=scenario.get("input_question", ""),
+                    height=150,
+                    disabled=True,
+                    label_visibility="collapsed",
+                )
 
                 if scenario.get("dependency_analysis"):
                     with st.expander("Dependency Analysis"):
@@ -370,12 +434,20 @@ with tab3:
 
         # Completed scenarios heatmap
         st.subheader("Scenarios Completed (out of total)")
-        pivot_completed = filtered_paper.pivot_table(
-            index="config", columns="category", values="completed", aggfunc="first"
-        ).fillna(0).astype(int)
-        pivot_total = filtered_paper.pivot_table(
-            index="config", columns="category", values="total", aggfunc="first"
-        ).fillna(0).astype(int)
+        pivot_completed = (
+            filtered_paper.pivot_table(
+                index="config", columns="category", values="completed", aggfunc="first"
+            )
+            .fillna(0)
+            .astype(int)
+        )
+        pivot_total = (
+            filtered_paper.pivot_table(
+                index="config", columns="category", values="total", aggfunc="first"
+            )
+            .fillna(0)
+            .astype(int)
+        )
 
         # Display as annotated text
         display_df = pivot_completed.copy()
@@ -395,7 +467,8 @@ with tab3:
             pivot_acc,
             text_auto=".0%",
             color_continuous_scale="RdYlGn",
-            zmin=0, zmax=1,
+            zmin=0,
+            zmax=1,
             aspect="auto",
         )
         fig_heat.update_layout(height=400, xaxis_title="", yaxis_title="")
@@ -434,9 +507,13 @@ with tab3:
 
         # Single vs Multi agent comparison
         st.subheader("Single Agent vs Multi Agent")
-        agent_comparison = filtered_paper.groupby(["agent_type", "category"]).agg(
-            avg_accuracy=("accuracy", "mean"),
-        ).reset_index()
+        agent_comparison = (
+            filtered_paper.groupby(["agent_type", "category"])
+            .agg(
+                avg_accuracy=("accuracy", "mean"),
+            )
+            .reset_index()
+        )
 
         if len(agent_comparison["agent_type"].unique()) > 1:
             fig_agent = px.bar(
@@ -446,7 +523,10 @@ with tab3:
                 color="agent_type",
                 barmode="group",
                 text=agent_comparison["avg_accuracy"].apply(lambda x: f"{x:.0%}"),
-                color_discrete_map={"single_agent": "#42A5F5", "multi_agent": "#EF5350"},
+                color_discrete_map={
+                    "single_agent": "#42A5F5",
+                    "multi_agent": "#EF5350",
+                },
             )
             fig_agent.update_layout(
                 height=400,
@@ -475,13 +555,15 @@ with tab4:
             for c in categories_list:
                 match = subset[subset["category"] == c]
                 vals.append(match["accuracy"].values[0] if len(match) > 0 else 0)
-            fig_radar.add_trace(go.Scatterpolar(
-                r=vals + [vals[0]],
-                theta=categories_list + [categories_list[0]],
-                name=config,
-                fill="toself",
-                opacity=0.3,
-            ))
+            fig_radar.add_trace(
+                go.Scatterpolar(
+                    r=vals + [vals[0]],
+                    theta=categories_list + [categories_list[0]],
+                    name=config,
+                    fill="toself",
+                    opacity=0.3,
+                )
+            )
 
         fig_radar.update_layout(
             polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
@@ -491,9 +573,13 @@ with tab4:
 
         # Framework comparison
         st.subheader("Framework Comparison (ReAct vs ReActXen)")
-        fw_comparison = filtered_paper.groupby(["framework", "category"]).agg(
-            avg_accuracy=("accuracy", "mean"),
-        ).reset_index()
+        fw_comparison = (
+            filtered_paper.groupby(["framework", "category"])
+            .agg(
+                avg_accuracy=("accuracy", "mean"),
+            )
+            .reset_index()
+        )
 
         fig_fw = px.bar(
             fw_comparison,
@@ -514,9 +600,13 @@ with tab4:
 
         # Model comparison
         st.subheader("Model Comparison")
-        model_comparison = filtered_paper.groupby(["model", "category"]).agg(
-            avg_accuracy=("accuracy", "mean"),
-        ).reset_index()
+        model_comparison = (
+            filtered_paper.groupby(["model", "category"])
+            .agg(
+                avg_accuracy=("accuracy", "mean"),
+            )
+            .reset_index()
+        )
 
         fig_model = px.bar(
             model_comparison,
@@ -536,16 +626,24 @@ with tab4:
 
         # Detailed results table
         st.subheader("Detailed Results Table")
-        detail_table = filtered_paper[["config", "category", "accuracy", "completed", "total"]].copy()
-        detail_table["accuracy_pct"] = detail_table["accuracy"].apply(lambda x: f"{x:.0%}")
-        detail_table["completion"] = detail_table.apply(lambda r: f"{r['completed']}/{r['total']}", axis=1)
+        detail_table = filtered_paper[
+            ["config", "category", "accuracy", "completed", "total"]
+        ].copy()
+        detail_table["accuracy_pct"] = detail_table["accuracy"].apply(
+            lambda x: f"{x:.0%}"
+        )
+        detail_table["completion"] = detail_table.apply(
+            lambda r: f"{r['completed']}/{r['total']}", axis=1
+        )
         st.dataframe(
-            detail_table[["config", "category", "accuracy_pct", "completion"]].rename(columns={
-                "config": "Configuration",
-                "category": "Category",
-                "accuracy_pct": "Accuracy",
-                "completion": "Completed/Total",
-            }),
+            detail_table[["config", "category", "accuracy_pct", "completion"]].rename(
+                columns={
+                    "config": "Configuration",
+                    "category": "Category",
+                    "accuracy_pct": "Accuracy",
+                    "completion": "Completed/Total",
+                }
+            ),
             use_container_width=True,
             height=500,
         )
@@ -553,23 +651,227 @@ with tab4:
     else:
         st.info("No paper results available for comparison.")
 
-# ---- Tab 5: Run History (Enhanced) ----
+# ---- Tab 5: Ablation Study ----
 with tab5:
+    st.header("Ablation Study: MCP Tool Utility Validation")
+    st.caption(
+        "Systematic ablation comparing full MCP tools vs data-loader-only vs no-tools (MLE-Bench style) conditions. "
+        "Best-performing configuration: Claude Code + Claude Opus 4.6 (multi-agent)."
+    )
+
+    if ablation_data:
+        ablation_results = ablation_data.get("ablation_results", [])
+        categories = [
+            "RUL Prediction",
+            "Fault Classification",
+            "Engine Health Analysis",
+            "Cost-Benefit Analysis",
+            "Safety/Policy Evaluation",
+        ]
+
+        # Summary metrics
+        st.subheader("Overall Performance by Condition")
+        cols = st.columns(3)
+        condition_colors = {
+            "Full Tools (Baseline)": "#43A047",
+            "Data Loader Only": "#FB8C00",
+            "No Tools (MLE-Bench Style)": "#E53935",
+        }
+        for i, entry in enumerate(ablation_results):
+            with cols[i]:
+                st.metric(
+                    entry["condition"],
+                    f"{entry['overall_score']:.0%}",
+                    delta=f"{entry['overall_score'] - ablation_results[0]['overall_score']:.0%}"
+                    if i > 0
+                    else None,
+                    delta_color="inverse" if i > 0 else "off",
+                )
+                st.caption(f"Tools available: {entry['tools_available']}")
+
+        # Bar chart comparison
+        st.subheader("Performance by Category and Condition")
+        bar_data = []
+        for entry in ablation_results:
+            for cat in categories:
+                score = entry["scores"].get(cat, {})
+                bar_data.append(
+                    {
+                        "Condition": entry["condition"],
+                        "Category": cat,
+                        "Accuracy": score.get("accuracy", 0),
+                        "Completed": score.get("completed", 0),
+                        "Total": score.get("total", 0),
+                    }
+                )
+
+        bar_df = pd.DataFrame(bar_data)
+        fig_ablation = px.bar(
+            bar_df,
+            x="Category",
+            y="Accuracy",
+            color="Condition",
+            barmode="group",
+            text=bar_df["Accuracy"].apply(lambda x: f"{x:.0%}"),
+            color_discrete_map=condition_colors,
+        )
+        fig_ablation.update_layout(
+            height=500,
+            xaxis_title="",
+            yaxis_title="Accuracy",
+            yaxis=dict(range=[0, 1.05]),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        )
+        st.plotly_chart(fig_ablation, use_container_width=True)
+
+        # Delta table
+        st.subheader("Performance Delta (Full Tools vs Ablated)")
+        delta_rows = []
+        for cat in categories:
+            full = ablation_results[0]["scores"][cat]["accuracy"]
+            loader = ablation_results[1]["scores"][cat]["accuracy"]
+            no_tools = ablation_results[2]["scores"][cat]["accuracy"]
+            delta_rows.append(
+                {
+                    "Category": cat,
+                    "Full Tools": f"{full:.0%}",
+                    "Data Loader Only": f"{loader:.0%}",
+                    "No Tools": f"{no_tools:.0%}",
+                    "Drop (Full vs No Tools)": f"-{(full - no_tools):.0%}",
+                    "Drop (Full vs Loader Only)": f"-{(full - loader):.0%}",
+                }
+            )
+        st.dataframe(pd.DataFrame(delta_rows), use_container_width=True, hide_index=True)
+
+        # Error analysis
+        st.subheader("Error Analysis by Condition")
+        err_col1, err_col2 = st.columns(2)
+
+        with err_col1:
+            st.markdown("**Data Loader Only — Failure Breakdown**")
+            loader_failures = ablation_results[1].get("failure_analysis", {})
+            if loader_failures:
+                fail_df = pd.DataFrame(
+                    [
+                        {"Error Type": k.replace("_", " ").title(), "Rate": v}
+                        for k, v in loader_failures.items()
+                    ]
+                )
+                fig_fail1 = px.pie(
+                    fail_df, names="Error Type", values="Rate", hole=0.4
+                )
+                fig_fail1.update_layout(height=300)
+                st.plotly_chart(fig_fail1, use_container_width=True)
+
+        with err_col2:
+            st.markdown("**No Tools — Failure Breakdown**")
+            no_tool_failures = ablation_results[2].get("failure_analysis", {})
+            if no_tool_failures:
+                fail_df2 = pd.DataFrame(
+                    [
+                        {"Error Type": k.replace("_", " ").title(), "Rate": v}
+                        for k, v in no_tool_failures.items()
+                    ]
+                )
+                fig_fail2 = px.pie(
+                    fail_df2, names="Error Type", values="Rate", hole=0.4
+                )
+                fig_fail2.update_layout(height=300)
+                st.plotly_chart(fig_fail2, use_container_width=True)
+
+        # Primary errors table
+        st.subheader("Primary Error Modes per Category")
+        error_rows = []
+        for cat in categories:
+            error_rows.append(
+                {
+                    "Category": cat,
+                    "Full Tools Error": ablation_results[0]["scores"][cat].get(
+                        "primary_error", "—"
+                    ),
+                    "Data Loader Only Error": ablation_results[1]["scores"][cat].get(
+                        "primary_error", "—"
+                    ),
+                    "No Tools Error": ablation_results[2]["scores"][cat].get(
+                        "primary_error", "—"
+                    ),
+                }
+            )
+        st.dataframe(pd.DataFrame(error_rows), use_container_width=True, hide_index=True)
+
+        # Auxiliary metrics section
+        st.divider()
+        st.subheader("Auxiliary Process Metrics (Full Tools Condition)")
+        aux = ablation_data.get("auxiliary_metrics", {})
+        if aux:
+            am1, am2, am3, am4 = st.columns(4)
+            am1.metric(
+                "Tool Accuracy",
+                f"{aux.get('tool_accuracy', {}).get('value', 0):.0%}",
+            )
+            am2.metric(
+                "Required Tool Coverage",
+                f"{aux.get('required_tool_coverage', {}).get('value', 0):.0%}",
+            )
+            am3.metric(
+                "Excess Tool Calls",
+                f"{aux.get('excess_tool_calls', {}).get('value', 0):.0%}",
+            )
+            am4.metric(
+                "Tool Sequencing Accuracy",
+                f"{aux.get('tool_sequencing_accuracy', {}).get('value', 0):.0%}",
+            )
+
+            # Tool accuracy breakdown
+            tool_acc = aux.get("tool_accuracy", {}).get("breakdown", {})
+            if tool_acc:
+                st.markdown("**Tool Accuracy by Category**")
+                ta_df = pd.DataFrame(
+                    [
+                        {"Tool Category": k.replace("_", " ").title(), "Accuracy": v}
+                        for k, v in tool_acc.items()
+                    ]
+                )
+                fig_ta = px.bar(
+                    ta_df,
+                    x="Tool Category",
+                    y="Accuracy",
+                    text=ta_df["Accuracy"].apply(lambda x: f"{x:.0%}"),
+                    color_discrete_sequence=["#1E88E5"],
+                )
+                fig_ta.update_layout(
+                    height=300, yaxis=dict(range=[0, 1.05]), xaxis_title=""
+                )
+                st.plotly_chart(fig_ta, use_container_width=True)
+
+        # Summary finding
+        summary = ablation_data.get("summary", {})
+        if summary:
+            st.info(f"**Key Finding:** {summary.get('key_finding', '')}")
+    else:
+        st.info(
+            "No ablation study results found. Expected at `results/ablation_results.json`."
+        )
+
+# ---- Tab 6: Run History (Enhanced) ----
+with tab6:
     st.header("Run History")
 
     if run_results:
-        run_df = pd.DataFrame([
-            {
-                "task_id": r.get("task_id", ""),
-                "category": r.get("classification_type", "Unknown"),
-                "dataset": r.get("dataset", ""),
-                "status": r.get("status", "unknown"),
-                "agent_type": r.get("agent_type", "unknown"),
-                "execution_time": r.get("execution_time", 0),
-                "source_file": r.get("_source_file", ""),
-            }
-            for r in run_results
-        ])
+        run_df = pd.DataFrame(
+            [
+                {
+                    "task_id": r.get("task_id", ""),
+                    "category": r.get("classification_type", "Unknown"),
+                    "dataset": r.get("dataset", ""),
+                    "status": r.get("status", "unknown"),
+                    "agent_type": r.get("agent_type", "unknown"),
+                    "execution_time": r.get("execution_time", 0),
+                    "source_file": r.get("_source_file", ""),
+                }
+                for r in run_results
+            ]
+        )
 
         # Summary metrics row
         st.subheader("Summary")
@@ -580,7 +882,9 @@ with tab5:
         failed_count = len(run_df[run_df["status"] == "failed"])
         m3.metric("Failed", failed_count)
         avg_time = run_df[run_df["execution_time"] > 0]["execution_time"].mean()
-        m4.metric("Avg Execution Time", f"{avg_time:.1f}s" if pd.notna(avg_time) else "N/A")
+        m4.metric(
+            "Avg Execution Time", f"{avg_time:.1f}s" if pd.notna(avg_time) else "N/A"
+        )
 
         # Status filter
         status_filter = st.radio(
@@ -622,7 +926,10 @@ with tab5:
                     color="agent_type",
                     nbins=15,
                     labels={"execution_time": "Execution Time (s)"},
-                    color_discrete_map={"single_agent": "#42A5F5", "multi_agent": "#EF5350"},
+                    color_discrete_map={
+                        "single_agent": "#42A5F5",
+                        "multi_agent": "#EF5350",
+                    },
                 )
                 fig_time.update_layout(height=300)
                 st.plotly_chart(fig_time, use_container_width=True)
@@ -636,14 +943,20 @@ with tab5:
             file_summary = []
             for sf in source_files:
                 sf_df = display_run_df[display_run_df["source_file"] == sf]
-                file_summary.append({
-                    "File": sf,
-                    "Scenarios": len(sf_df),
-                    "Completed": len(sf_df[sf_df["status"] == "completed"]),
-                    "Failed": len(sf_df[sf_df["status"] == "failed"]),
-                    "Agent Type": sf_df["agent_type"].mode().iloc[0] if not sf_df["agent_type"].mode().empty else "unknown",
-                    "Avg Time (s)": f"{sf_df['execution_time'].mean():.1f}",
-                })
+                file_summary.append(
+                    {
+                        "File": sf,
+                        "Scenarios": len(sf_df),
+                        "Completed": len(sf_df[sf_df["status"] == "completed"]),
+                        "Failed": len(sf_df[sf_df["status"] == "failed"]),
+                        "Agent Type": (
+                            sf_df["agent_type"].mode().iloc[0]
+                            if not sf_df["agent_type"].mode().empty
+                            else "unknown"
+                        ),
+                        "Avg Time (s)": f"{sf_df['execution_time'].mean():.1f}",
+                    }
+                )
             st.dataframe(pd.DataFrame(file_summary), use_container_width=True)
 
         # Full results table
@@ -668,8 +981,8 @@ with tab5:
     else:
         st.text("No result files found.")
 
-# ---- Tab 6: Tool Explorer ----
-with tab6:
+# ---- Tab 7: Tool Explorer ----
+with tab7:
     st.header("Tool Explorer")
 
     if tools_inventory:
@@ -678,14 +991,16 @@ with tab6:
         for server, categories in tools_inventory.items():
             for category, tools_list in categories.items():
                 for tool in tools_list:
-                    sunburst_data.append({
-                        "server": server,
-                        "category": category,
-                        "tool": tool["name"],
-                        "description": tool.get("description", ""),
-                        "params": ", ".join(tool.get("params", [])),
-                        "value": 1,
-                    })
+                    sunburst_data.append(
+                        {
+                            "server": server,
+                            "category": category,
+                            "tool": tool["name"],
+                            "description": tool.get("description", ""),
+                            "params": ", ".join(tool.get("params", [])),
+                            "value": 1,
+                        }
+                    )
 
         sunburst_df = pd.DataFrame(sunburst_data)
 
@@ -706,7 +1021,9 @@ with tab6:
         # Tool detail panel
         st.subheader("Tool Details")
         all_tool_names = sunburst_df["tool"].tolist()
-        selected_tool = st.selectbox("Select a tool to view details", options=all_tool_names)
+        selected_tool = st.selectbox(
+            "Select a tool to view details", options=all_tool_names
+        )
 
         if selected_tool:
             tool_row = sunburst_df[sunburst_df["tool"] == selected_tool].iloc[0]
@@ -722,26 +1039,35 @@ with tab6:
             # Cross-reference with scenarios
             if scenarios:
                 matching_scenarios = [
-                    s for s in scenarios
-                    if selected_tool in s.get("required_tools", [])
+                    s for s in scenarios if selected_tool in s.get("required_tools", [])
                 ]
                 if matching_scenarios:
                     st.markdown(f"**Used in {len(matching_scenarios)} scenarios:**")
                     scenario_refs = []
                     for s in matching_scenarios:
-                        scenario_refs.append({
-                            "Task ID": s.get("task_id", ""),
-                            "Category": s.get("classification_type", ""),
-                            "Dataset": s.get("dataset", ""),
-                        })
-                    st.dataframe(pd.DataFrame(scenario_refs), use_container_width=True, height=200)
+                        scenario_refs.append(
+                            {
+                                "Task ID": s.get("task_id", ""),
+                                "Category": s.get("classification_type", ""),
+                                "Dataset": s.get("dataset", ""),
+                            }
+                        )
+                    st.dataframe(
+                        pd.DataFrame(scenario_refs),
+                        use_container_width=True,
+                        height=200,
+                    )
                 else:
-                    st.info("This tool is not directly listed in any scenario's required_tools.")
+                    st.info(
+                        "This tool is not directly listed in any scenario's required_tools."
+                    )
 
         # Summary stats
         st.subheader("Tool Distribution Summary")
         server_counts = sunburst_df.groupby("server").size().reset_index(name="Tools")
-        cat_counts = sunburst_df.groupby(["server", "category"]).size().reset_index(name="Tools")
+        cat_counts = (
+            sunburst_df.groupby(["server", "category"]).size().reset_index(name="Tools")
+        )
         s1, s2 = st.columns(2)
         with s1:
             st.markdown("**Tools per Server**")
@@ -750,10 +1076,12 @@ with tab6:
             st.markdown("**Tools per Category**")
             st.dataframe(cat_counts, use_container_width=True)
     else:
-        st.info("Tool inventory file not found. Expected at `frontend/tools_inventory.json`.")
+        st.info(
+            "Tool inventory file not found. Expected at `frontend/tools_inventory.json`."
+        )
 
-# ---- Tab 7: Interactive Playground ----
-with tab7:
+# ---- Tab 8: Interactive Playground ----
+with tab8:
     st.header("Interactive Playground")
     st.caption("Replay pre-recorded agent execution trajectories step-by-step.")
 
@@ -775,11 +1103,20 @@ with tab7:
         # Agent type and replay speed
         col_a, col_b = st.columns(2)
         with col_a:
-            agent_display = traj_data.get("agent_type", "multi_agent").replace("_", " ").title()
+            agent_display = (
+                traj_data.get("agent_type", "multi_agent").replace("_", " ").title()
+            )
             st.markdown(f"**Agent Type:** {agent_display}")
             st.markdown(f"**Total Time:** {traj_data.get('total_time', 0):.1f}s")
         with col_b:
-            replay_speed = st.slider("Replay Speed", min_value=0.5, max_value=5.0, value=2.0, step=0.5, format="%.1fx")
+            replay_speed = st.slider(
+                "Replay Speed",
+                min_value=0.5,
+                max_value=5.0,
+                value=2.0,
+                step=0.5,
+                format="%.1fx",
+            )
 
         # Scenario info
         scenario_info = traj_data.get("scenario", {})
@@ -790,7 +1127,9 @@ with tab7:
             st.markdown(f"**Question:** {scenario_info.get('question_preview', '')}")
 
         # Live mode notice
-        st.info("**Trajectory Replay Mode** — Replaying a pre-recorded agent execution trace. Live Mode (requiring local API keys) coming soon.")
+        st.info(
+            "**Trajectory Replay Mode** — Replaying a pre-recorded agent execution trace. Live Mode (requiring local API keys) coming soon."
+        )
 
         # Run button
         if st.button("Run Scenario", type="primary"):
@@ -828,7 +1167,10 @@ with tab7:
                     label = step_type.replace("_", " ").title()
 
                     if step_type == "action":
-                        with st.status(f"Step {step_num}: {label} — `{tool_name}`", state="complete"):
+                        with st.status(
+                            f"Step {step_num}: {label} — `{tool_name}`",
+                            state="complete",
+                        ):
                             st.markdown(f"**Tool:** `{tool_name}`")
                             if step_input:
                                 st.json(step_input)
@@ -836,7 +1178,9 @@ with tab7:
                             st.caption(f"{step_time:.1f}s")
                     elif step_type == "final_answer":
                         st.success(f"**Step {step_num}: Final Answer**\n\n{content}")
-                        st.caption(f"Total replay time simulated: {traj_data.get('total_time', 0):.1f}s")
+                        st.caption(
+                            f"Total replay time simulated: {traj_data.get('total_time', 0):.1f}s"
+                        )
                     elif step_type == "thought":
                         with st.status(f"Step {step_num}: {label}", state="complete"):
                             st.markdown(f"*{content}*")
@@ -858,7 +1202,9 @@ with tab7:
                 if step_type == "thought":
                     st.markdown(f"**Step {step_num} — Thought:** *{content}*")
                 elif step_type == "action":
-                    st.markdown(f"**Step {step_num} — Action:** `{tool_name}` — {content}")
+                    st.markdown(
+                        f"**Step {step_num} — Action:** `{tool_name}` — {content}"
+                    )
                 elif step_type == "observation":
                     st.markdown(f"**Step {step_num} — Observation:**")
                     st.code(content, language="text")
@@ -870,3 +1216,206 @@ with tab7:
             "No trajectory files found. Expected in `results/trajectories/`.\n\n"
             "Trajectory files are pre-recorded agent execution traces in JSON format."
         )
+
+
+# ---- Tab 9: MCP Servers ----
+with tab9:
+    st.header("MCP Server Status & Metrics")
+
+    # Server architecture overview
+    st.subheader("Architecture")
+    st.markdown(
+        "PHMForge uses **2 MCP servers** with **22 tools** total, "
+        "connected via the Model Context Protocol (FastMCP framework)."
+    )
+
+    # Server definitions (static — matches the actual servers)
+    MCP_SERVERS = {
+        "prognostics": {
+            "display_name": "Prognostics Server",
+            "tools": 15,
+            "categories": [
+                "Data Loading",
+                "Model Training",
+                "Prediction",
+                "Metrics",
+                "Engine Health",
+            ],
+            "transport": "stdio (SSE-capable)",
+            "tool_list": [
+                ("load_dataset", "Data Loading", "Load dataset from PDMBench"),
+                ("load_ground_truth", "Data Loading", "Load ground truth RUL values"),
+                ("train_rul_model", "Model Training", "Train RUL prediction model"),
+                ("predict_rul", "Prediction", "Predict remaining useful life"),
+                (
+                    "train_fault_classifier",
+                    "Model Training",
+                    "Train fault classification model",
+                ),
+                ("classify_faults", "Prediction", "Classify faults for test units"),
+                ("calculate_mae", "Metrics", "Calculate Mean Absolute Error"),
+                ("calculate_rmse", "Metrics", "Calculate Root Mean Squared Error"),
+                (
+                    "verify_ground_truth",
+                    "Metrics",
+                    "Verify predictions against ground truth",
+                ),
+                ("calculate_accuracy", "Metrics", "Calculate classification accuracy"),
+                ("verify_classification", "Metrics", "Verify fault classifications"),
+                (
+                    "analyze_engine_signals",
+                    "Engine Health",
+                    "Parse multi-sensor signal data",
+                ),
+                (
+                    "assess_component_health",
+                    "Engine Health",
+                    "Evaluate component health status",
+                ),
+                ("diagnose_timing_issues", "Engine Health", "Identify fault patterns"),
+                (
+                    "detect_degradation_trend",
+                    "Engine Health",
+                    "Analyze degradation trends",
+                ),
+            ],
+        },
+        "maintenance": {
+            "display_name": "Maintenance Server",
+            "tools": 7,
+            "categories": ["Cost-Benefit", "Safety/Policy", "Utility"],
+            "transport": "stdio (SSE-capable)",
+            "tool_list": [
+                (
+                    "calculate_maintenance_cost",
+                    "Cost-Benefit",
+                    "Compute annual preventive maintenance costs",
+                ),
+                (
+                    "calculate_failure_cost",
+                    "Cost-Benefit",
+                    "Estimate expected annual failure cost",
+                ),
+                (
+                    "optimize_maintenance_schedule",
+                    "Cost-Benefit",
+                    "Find cost-optimal maintenance threshold",
+                ),
+                (
+                    "assess_safety_risk",
+                    "Safety/Policy",
+                    "Classify risk using RPN analysis",
+                ),
+                (
+                    "check_compliance",
+                    "Safety/Policy",
+                    "Validate against safety standards",
+                ),
+                (
+                    "generate_safety_recommendations",
+                    "Safety/Policy",
+                    "Produce safety action items",
+                ),
+                ("web_search", "Utility", "Search internet via Brave API"),
+            ],
+        },
+    }
+
+    # Server cards
+    col1, col2 = st.columns(2)
+
+    for (server_name, info), col in zip(MCP_SERVERS.items(), [col1, col2]):
+        with col:
+            st.metric(info["display_name"], f"{info['tools']} tools")
+            st.caption(f"Transport: {info['transport']}")
+            st.markdown(f"Categories: {', '.join(info['categories'])}")
+
+            # Tool table
+            tool_df = pd.DataFrame(
+                info["tool_list"],
+                columns=["Tool Name", "Category", "Description"],
+            )
+            st.dataframe(
+                tool_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    st.divider()
+
+    # MCP Eval Metrics section
+    st.subheader("MCP Evaluation Metrics")
+    st.markdown("PHMForge tracks MCP-specific quality dimensions beyond task accuracy:")
+
+    mcp_eval_file = RESULTS_DIR / "mcp_eval_results.json"
+    if mcp_eval_file.exists():
+        with open(mcp_eval_file) as f:
+            mcp_results = json.load(f)
+
+        agg = mcp_results.get("aggregate", {})
+        if agg:
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Scenarios Evaluated", agg.get("scenarios_evaluated", 0))
+            m2.metric(
+                "Avg Tool Success Rate", f"{agg.get('avg_tool_success_rate', 0):.1%}"
+            )
+            m3.metric(
+                "Avg Schema Compliance",
+                f"{agg.get('avg_schema_compliance_rate', 0):.1%}",
+            )
+            m4.metric(
+                "Avg Discovery Latency",
+                f"{agg.get('avg_tool_discovery_latency_ms', 0):.0f}ms",
+            )
+
+            # Per-scenario results
+            scenario_results = mcp_results.get("scenarios", [])
+            if scenario_results:
+                eval_df = pd.DataFrame(scenario_results)
+                if "mcp_metrics" in eval_df.columns:
+                    metrics_df = pd.json_normalize(eval_df["mcp_metrics"])
+                    metrics_df["scenario_id"] = eval_df["scenario_id"]
+                    st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+    else:
+        st.info(
+            "No MCP eval results found. Run the benchmark with MCP evaluation enabled "
+            "to generate `results/mcp_eval_results.json`.\n\n"
+            "**Tracked metrics:**\n"
+            "- Tool discovery latency (ms)\n"
+            "- Tool call success rate\n"
+            "- Schema compliance rate\n"
+            "- Routing accuracy\n"
+            "- Context efficiency (chars consumed)"
+        )
+
+    st.divider()
+
+    # Tool usage across scenarios
+    st.subheader("Tool Usage Across Scenarios")
+    if scenarios:
+        tool_counts = {}
+        for s in scenarios:
+            for t in s.get("required_tools", []):
+                tool_counts[t] = tool_counts.get(t, 0) + 1
+
+        usage_df = pd.DataFrame(
+            sorted(tool_counts.items(), key=lambda x: -x[1]),
+            columns=["Tool", "Scenarios"],
+        )
+
+        # Add server column
+        prog_tools = {t[0] for t in MCP_SERVERS["prognostics"]["tool_list"]}
+        usage_df["Server"] = usage_df["Tool"].apply(
+            lambda t: "prognostics" if t in prog_tools else "maintenance"
+        )
+
+        fig = px.bar(
+            usage_df,
+            x="Tool",
+            y="Scenarios",
+            color="Server",
+            color_discrete_map={"prognostics": "#1E88E5", "maintenance": "#E53935"},
+            title="Tool Usage Distribution Across 75 Scenarios",
+        )
+        fig.update_layout(xaxis_tickangle=-45, height=400)
+        st.plotly_chart(fig, use_container_width=True)
