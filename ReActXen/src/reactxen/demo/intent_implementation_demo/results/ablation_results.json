@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "source": "PHMForge Ablation Study — MCP Tool Utility Validation",
+    "description": "Ablation study comparing performance with full MCP tools vs data-loader-only vs no-tools (MLE-Bench style) conditions. Conducted on the best-performing configuration (Claude Code + Claude Opus 4.6, multi-agent).",
+    "experiment_date": "2026-04-10",
+    "baseline_config": {
+      "framework": "Claude Code",
+      "model": "Claude Opus 4.6",
+      "agent_type": "multi_agent",
+      "baseline_overall_score": 0.81
+    },
+    "conditions": {
+      "full_tools": "All 22 MCP tools available across Prognostics and Maintenance servers",
+      "data_loader_only": "Only load_dataset and load_ground_truth tools available; agent must write custom code for training, prediction, evaluation, and domain analysis",
+      "no_tools": "No MCP tools provided; agent receives scenario text and raw data file paths only (MLE-Bench equivalent setting)"
+    },
+    "notes": "This ablation validates the contribution of domain-specific MCP tools by systematically removing tool categories. Without custom tools, agents must independently implement ML pipelines, domain heuristics, and compliance logic — tasks that require substantial PHM domain knowledge not encoded in general-purpose LLMs."
+  },
+  "ablation_results": [
+    {
+      "condition": "Full Tools (Baseline)",
+      "condition_key": "full_tools",
+      "tools_available": 22,
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.87, "completed": 13, "total": 15, "primary_error": "Train-test contamination" },
+        "Fault Classification": { "accuracy": 0.80, "completed": 12, "total": 15, "primary_error": "Fine-grained taxonomy" },
+        "Engine Health Analysis": { "accuracy": 0.70, "completed": 21, "total": 30, "primary_error": "Timing issue misdiagnosis" },
+        "Cost-Benefit Analysis": { "accuracy": 1.00, "completed": 5, "total": 5, "primary_error": "None" },
+        "Safety/Policy Evaluation": { "accuracy": 0.90, "completed": 9, "total": 10, "primary_error": "Threshold lookup errors" }
+      },
+      "overall_score": 0.81,
+      "tool_call_accuracy": 0.89,
+      "avg_tool_calls_per_scenario": 4.2,
+      "excess_tool_call_rate": 0.12
+    },
+    {
+      "condition": "Data Loader Only",
+      "condition_key": "data_loader_only",
+      "tools_available": 2,
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.53, "completed": 8, "total": 15, "primary_error": "Model architecture mismatch — agent-written LSTM lacks PHM-specific feature engineering" },
+        "Fault Classification": { "accuracy": 0.47, "completed": 7, "total": 15, "primary_error": "Incorrect fault taxonomy mapping — agent confused bearing severity levels" },
+        "Engine Health Analysis": { "accuracy": 0.23, "completed": 7, "total": 30, "primary_error": "Unable to parse multi-sensor signal structure; missing component-level health heuristics" },
+        "Cost-Benefit Analysis": { "accuracy": 0.40, "completed": 2, "total": 5, "primary_error": "Incorrect maintenance cost formula; missed downtime impact quantification" },
+        "Safety/Policy Evaluation": { "accuracy": 0.30, "completed": 3, "total": 10, "primary_error": "Hallucinated OSHA/IEC threshold values; incomplete compliance framework" }
+      },
+      "overall_score": 0.36,
+      "tool_call_accuracy": null,
+      "avg_tool_calls_per_scenario": 1.8,
+      "excess_tool_call_rate": null,
+      "failure_analysis": {
+        "code_generation_errors": 0.34,
+        "domain_knowledge_gaps": 0.41,
+        "data_format_misinterpretation": 0.25
+      }
+    },
+    {
+      "condition": "No Tools (MLE-Bench Style)",
+      "condition_key": "no_tools",
+      "tools_available": 0,
+      "scores": {
+        "RUL Prediction": { "accuracy": 0.40, "completed": 6, "total": 15, "primary_error": "Incorrect data loading; agent-generated train/test splits violate temporal ordering" },
+        "Fault Classification": { "accuracy": 0.33, "completed": 5, "total": 15, "primary_error": "Dataset misidentification (18%); path navigation errors (23%); incorrect feature extraction (16%)" },
+        "Engine Health Analysis": { "accuracy": 0.17, "completed": 5, "total": 30, "primary_error": "Complete failure on multi-sensor parsing; hallucinated component health categories" },
+        "Cost-Benefit Analysis": { "accuracy": 0.20, "completed": 1, "total": 5, "primary_error": "Fabricated cost parameters; no grounding in maintenance economics" },
+        "Safety/Policy Evaluation": { "accuracy": 0.20, "completed": 2, "total": 10, "primary_error": "Hallucinated regulatory thresholds; confused IEC/ISO standard numbering" }
+      },
+      "overall_score": 0.25,
+      "tool_call_accuracy": null,
+      "avg_tool_calls_per_scenario": 0,
+      "excess_tool_call_rate": null,
+      "failure_analysis": {
+        "data_loading_failures": 0.47,
+        "code_generation_errors": 0.28,
+        "domain_knowledge_gaps": 0.52,
+        "hallucinated_outputs": 0.38
+      }
+    }
+  ],
+  "auxiliary_metrics": {
+    "description": "Additional process-oriented metrics captured during full-tool evaluation (Claude Code + Opus 4.6)",
+    "tool_accuracy": {
+      "description": "Percentage of tool invocations that returned valid, usable results",
+      "value": 0.89,
+      "breakdown": {
+        "data_loading_tools": 0.96,
+        "model_training_tools": 0.91,
+        "metric_tools": 0.94,
+        "analysis_tools": 0.82,
+        "safety_compliance_tools": 0.85
+      }
+    },
+    "required_tool_coverage": {
+      "description": "Percentage of required tools that the agent correctly identified and called",
+      "value": 0.84,
+      "by_category": {
+        "RUL Prediction": 0.91,
+        "Fault Classification": 0.87,
+        "Engine Health Analysis": 0.79,
+        "Cost-Benefit Analysis": 0.88,
+        "Safety/Policy Evaluation": 0.82
+      }
+    },
+    "excess_tool_calls": {
+      "description": "Percentage of tool calls that were unnecessary (distraction/redundant)",
+      "value": 0.12,
+      "common_excess_tools": ["web_search", "load_dataset (redundant calls)", "verify_ground_truth (premature)"]
+    },
+    "tool_sequencing_accuracy": {
+      "description": "Percentage of scenarios where tools were called in the correct dependency order",
+      "value": 0.77,
+      "primary_sequencing_errors": [
+        "Prediction before training (23%)",
+        "Metric calculation before prediction (8%)",
+        "Verification before all predictions complete (12%)"
+      ]
+    },
+    "data_discovery_accuracy": {
+      "description": "Percentage of scenarios where the agent correctly identified and loaded the required dataset",
+      "value": 0.87,
+      "autonomous_load_success": 0.533,
+      "prompted_load_success": 0.746
+    }
+  },
+  "summary": {
+    "full_tools_vs_data_loader_delta": -0.45,
+    "full_tools_vs_no_tools_delta": -0.56,
+    "data_loader_vs_no_tools_delta": -0.11,
+    "key_finding": "Domain-specific MCP tools contribute a 56 percentage point improvement over tool-free baselines and 45 points over data-loader-only conditions, with the largest gaps in Engine Health Analysis (53pp) and Safety/Policy Evaluation (70pp) — categories requiring specialized domain heuristics and regulatory knowledge that general-purpose LLMs cannot reliably generate from parametric knowledge alone."
+  }
+}
